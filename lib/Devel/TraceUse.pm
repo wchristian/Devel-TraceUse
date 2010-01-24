@@ -19,7 +19,9 @@ BEGIN
 	%INC = ();
 }
 
-my @used;
+my %used;
+my $rank = 0;
+my $root;
 
 sub trace_use
 {
@@ -29,53 +31,60 @@ sub trace_use
 
 	my ( $package, $filename, $line ) = caller();
 	my $elapsed                       = 0;
+	my $file                          = $filename;
+	my $filepack;
 
 	{
 		local *INC     = [ @INC[ 1 .. $#INC ] ];
+		$file                 =~ s{^(?:@{[ join '|', map quotemeta, reverse sort @INC]})/?}{};
+		( $filepack = $file ) =~ s{/}{::}g;
+		$filepack             =~ s/\.pm$//;
 		my $start_time = [ gettimeofday() ];
 		eval "package $package; require '$mod_name';";
 		$elapsed       = tv_interval($start_time);
 	}
 
-	$package = $filename if $package eq 'main';
-
-	push @used,
+    $root = $file if !defined $root;
+	push @{ $used{$file} },
 	{
-		'file'   => $package,
-		'line'   => $line,
-		'time'   => $elapsed,
-		'module' => $mod_name,
+		'package'      => $package,
+		'file'         => $file,
+		'file_path'    => $filename,
+		'file_package' => $filepack,
+		'line'         => $line,
+		'time'         => $elapsed,
+		'module'       => $mod_name,
+		'module_file'  => $module,
+		'module_rank'  => ++$rank,
 	};
 
 	return;
 }
 
-END
-{
-	my $first = $used[0];
-	my %seen  = ( $first->{file} => 1 );
-	my $pos   = 1;
+sub show_trace {
+	my ($mod, $pos) = @_;
 
-	warn "Modules used from $first->{file}:\n";
-
-	for my $mod (@used)
-	{
-		my $message = '';
-
-		if ( exists $seen{ $mod->{file} } )
-		{
-			$pos = $seen{ $mod->{file} };
-		}
-		else
-		{
-			$seen{ $mod->{file} } = ++$pos;
-		}
-
-		my $indent = '  ' x $pos;
-		$message  .= "$indent$mod->{module}, line $mod->{line}";
-		$message  .= " ($mod->{time})" if $mod->{time};
+	if( ref $mod ) {
+		my $message = sprintf( '%4s.', $mod->{module_rank} ) . '  ' x $pos;
+		$message   .= "$mod->{module}, $mod->{file} line $mod->{line}";
+		$message   .= " [$mod->{package}]"
+			if $mod->{package} ne $mod->{file_package};
+		$message   .= " ($mod->{time})"
+			if $mod->{time};
 		warn "$message\n";
 	}
+	else {
+		$mod = { module_file => $mod };
+	}
+
+	show_trace( $_, $pos + 1 )
+		for @{ $used{ $mod->{module_file} } };
+}
+
+END
+{
+	warn "Modules used from $root:\n";
+	show_trace( $root, 0 );
 }
 
 1;
