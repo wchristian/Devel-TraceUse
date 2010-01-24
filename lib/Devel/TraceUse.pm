@@ -16,6 +16,7 @@ use Time::HiRes qw( gettimeofday tv_interval );
 BEGIN
 {
 	unshift @INC, \&trace_use unless grep { "$_" eq \&trace_use . '' } @INC;
+	%INC = ();
 }
 
 my @used;
