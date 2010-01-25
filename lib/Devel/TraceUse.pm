@@ -34,6 +34,10 @@ sub trace_use
 	my $file                          = $filename;
 	my $filepack;
 
+	# ensure our hook remains first in @INC
+	@INC = ( $code, grep { $_ ne $code } @INC )
+		if $INC[0] ne $code;
+
 	{
 		local *INC     = [ @INC[ 1 .. $#INC ] ];
 		$file                 =~ s{^(?:@{[ join '|', map quotemeta, reverse sort @INC]})/?}{};
