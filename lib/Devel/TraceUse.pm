@@ -11,8 +11,6 @@ use warnings;
 use vars '$VERSION';
 $VERSION = '1.00';
 
-use Time::HiRes qw( gettimeofday tv_interval );
-
 BEGIN
 {
 	unshift @INC, \&trace_use unless grep { "$_" eq \&trace_use . '' } @INC;
@@ -38,15 +36,9 @@ sub trace_use
 	@INC = ( $code, grep { $_ ne $code } @INC )
 		if $INC[0] ne $code;
 
-	{
-		local *INC     = [ @INC[ 1 .. $#INC ] ];
-		$file                 =~ s{^(?:@{[ join '|', map quotemeta, reverse sort @INC]})/?}{};
-		( $filepack = $file ) =~ s{/}{::}g;
-		$filepack             =~ s/\.pm$//;
-		my $start_time = [ gettimeofday() ];
-		eval "package $package; require '$mod_name';";
-		$elapsed       = tv_interval($start_time);
-	}
+	$file                 =~ s{^(?:@{[ join '|', map quotemeta, reverse sort @INC]})/?}{};
+	( $filepack = $file ) =~ s{/}{::}g;
+	$filepack             =~ s/\.pm$//;
 
     $root = $file if !defined $root;
 	push @{ $used{$file} },
@@ -56,7 +48,6 @@ sub trace_use
 		'file_path'    => $filename,
 		'file_package' => $filepack,
 		'line'         => $line,
-		'time'         => $elapsed,
 		'module'       => $mod_name,
 		'module_file'  => $module,
 		'module_rank'  => ++$rank,
@@ -73,8 +64,6 @@ sub show_trace {
 		$message   .= "$mod->{module}, $mod->{file} line $mod->{line}";
 		$message   .= " [$mod->{package}]"
 			if $mod->{package} ne $mod->{file_package};
-		$message   .= " ($mod->{time})"
-			if $mod->{time};
 		warn "$message\n";
 	}
 	else {
@@ -113,16 +102,16 @@ This will display a tree of the modules ultimately used to run your program.
 to the end.)
 
   Modules used from your_program.pl:
-  Test::MockObject::Extends, line 6 (0.000514)
-    Test::MockObject, line 6 (0.000408)
-      Scalar::Util, line 9 (0.000521)
-        List::Util, line 12 (0.000393)
-          XSLoader, line 24 (0.000396)
-      UNIVERSAL::isa, line 10 (0.000436)
-        UNIVERSAL, line 8 (0.000247)
-      UNIVERSAL::can, line 11 (0.000428)
-      Test::Builder, line 13 (0.000413)
-    Devel::Peek, line 8 (0.000693)
+  Test::MockObject::Extends, line 6
+    Test::MockObject, line 6
+      Scalar::Util, line 9
+        List::Util, line 12
+          XSLoader, line 24
+      UNIVERSAL::isa, line 10
+        UNIVERSAL, line 8
+      UNIVERSAL::can, line 11
+      Test::Builder, line 13
+    Devel::Peek, line 8
 
 =head1 AUTHOR
 
