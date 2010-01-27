@@ -5,79 +5,131 @@ sub DB {}
 
 package Devel::TraceUse;
 
-use strict;
-use warnings;
-
-use vars '$VERSION';
-$VERSION = '1.00';
+our $VERSION = '1.00';
 
 BEGIN
 {
 	unshift @INC, \&trace_use unless grep { "$_" eq \&trace_use . '' } @INC;
-	%INC = ();
 }
 
+# initialize the tree of require calls
+my $root = (caller)[1];
 my %used;
+my %loaded;
 my $rank = 0;
-my $root;
+
+my @caller_info = qw( package filepath line subroutine hasargs
+	wantarray evaltext is_require hints bitmask hinthash );
+
+# Keys used in the data structure:
+# - filename: parameter given to use/require
+# - module:   module, computed from filename
+# - rank:     rank of loading
+# - eval:     was this use/require done in an eval?
+# - loaded:   list of files loaded from this one
+# - filepath: file that was actually loaded from disk (obtained from %INC)
+# - caller:   information on the caller (same keys + everything from caller())
 
 sub trace_use
 {
-	my ( $code, $module )      = @_;
-	( my $mod_name = $module ) =~ s{/}{::}g;
-	$mod_name                  =~ s/\.pm$//;
-
-	my ( $package, $filename, $line ) = caller();
-	my $elapsed                       = 0;
-	my $file                          = $filename;
-	my $filepack;
+	my ( $code, $filename ) = @_;
 
 	# ensure our hook remains first in @INC
 	@INC = ( $code, grep { $_ ne $code } @INC )
 		if $INC[0] ne $code;
 
-	$file                 =~ s{^(?:@{[ join '|', map quotemeta, reverse sort @INC]})/?}{};
-	( $filepack = $file ) =~ s{/}{::}g;
-	$filepack             =~ s/\.pm$//;
+	# $filename may be an actual filename, e.g. with do()
+	# try to compute a module name from it
+	my $module = $filename;
+	$module =~ s{/}{::}g
+		if $module =~ s/\.pm$//;
 
-    $root = $file if !defined $root;
-	push @{ $used{$file} },
-	{
-		'package'      => $package,
-		'file'         => $file,
-		'file_path'    => $filename,
-		'file_package' => $filepack,
-		'line'         => $line,
-		'module'       => $mod_name,
-		'module_file'  => $module,
-		'module_rank'  => ++$rank,
+	# info about the module being loaded
+	$used{$filename} = my $info = {
+		filename => $filename,
+		module   => $module,
+		rank     => ++$rank,
+		eval     => '',
 	};
 
+	# info about the loading module
+	my $caller = $info->{caller} = {};
+	@{$caller}{@caller_info} = caller(0);
+
+	# try to compute a "filename" (as received by require)
+	$caller->{filename} = $caller->{filepath};
+
+	# some values seen in the wild:
+	# - "(eval $num)[$path:$line]" (debugger)
+	# - "$filename (autosplit into $path)" (AutoLoader)
+	if ( $caller->{filename} =~ /^(\(eval \d+\))(?:\[(.*):(\d+)\])?$/ ) {
+		$info->{eval}       = $1;
+		$caller->{filename} = $2;
+		$caller->{line}     = $3;
+	}
+
+	# clean up path
+	$caller->{filename}
+		=~ s{^(?:@{[ join '|', map quotemeta, reverse sort @INC]})/?}{};
+
+	# try to compute the package associated with the file
+	$caller->{filepackage} = $caller->{filename};
+	$caller->{filepackage} =~ s/\.(pm|al)\s.*$/.$1/;
+	$caller->{filepackage} =~ s{/}{::}g
+		if $caller->{filepackage} =~ s/\.pm$//;
+
+	# record who tried to load us
+	push @{ $loaded{ $caller->{filepath} } }, $info->{filename};
+
+	# let Perl ultimately find the required file
 	return;
 }
 
-sub show_trace {
-	my ($mod, $pos) = @_;
+sub show_trace
+{
+	my ( $mod, $pos ) = @_;
 
-	if( ref $mod ) {
-		my $message = sprintf( '%4s.', $mod->{module_rank} ) . '  ' x $pos;
-		$message   .= "$mod->{module}, $mod->{file} line $mod->{line}";
-		$message   .= " [$mod->{package}]"
-			if $mod->{package} ne $mod->{file_package};
+	if ( ref $mod ) {
+		my $caller = $mod->{caller};
+		my $message = sprintf( '%4s.', $mod->{rank} ) . '  ' x $pos;
+		$message .= "$mod->{module},";
+		$message .= " $caller->{filename}"
+			if defined $caller->{filename};
+		$message .= " line $caller->{line}"
+			if defined $caller->{line};
+		$message .= " $mod->{eval}"
+			if $mod->{eval};
+		$message .= " [$caller->{package}]"
+			if $caller->{package} ne $caller->{filepackage};
 		warn "$message\n";
 	}
 	else {
-		$mod = { module_file => $mod };
+		$mod = { loaded => delete $loaded{$mod} };
 	}
 
-	show_trace( $_, $pos + 1 )
-		for @{ $used{ $mod->{module_file} } };
+	show_trace( $used{$_}, $pos + 1 )
+		for map { $INC{$_} } @{ $mod->{loaded} };
 }
 
 END
 {
+
+	# map "filename" to "filepath" for everything that was loaded
+	while ( my ( $filename, $filepath ) = each %INC ) {
+		if ( exists $used{$filename} ) {
+			$used{$filename}{loaded} = delete $loaded{$filepath} || [];
+			$used{$filepath} = delete $used{$filename};
+		}
+	}
+
+	# output the diagnostic
 	warn "Modules used from $root:\n";
 	show_trace( $root, 0 );
+
+	# anything left?
+	if (%loaded) {
+		show_trace($_) for sort keys %loaded;
+	}
 }
 
 1;
