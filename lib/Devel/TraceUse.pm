@@ -154,20 +154,30 @@ This will display a tree of the modules ultimately used to run your program.
 to the end.)
 
   Modules used from your_program.pl:
-  Test::MockObject::Extends, line 6
-    Test::MockObject, line 6
-      Scalar::Util, line 9
-        List::Util, line 12
-          XSLoader, line 24
-      UNIVERSAL::isa, line 10
-        UNIVERSAL, line 8
-      UNIVERSAL::can, line 11
-      Test::Builder, line 13
-    Devel::Peek, line 8
+     1.  strict, your_program.pl line 1 [main]
+     2.  warnings, your_program.pl line 2 [main]
+     3.  Getopt::Long, your_program.pl line 3 [main]
+     4.    vars, Getopt/Long.pm line 37
+     5.      warnings::register, vars.pm line 7
+     6.    Exporter, Getopt/Long.pm line 43
+     9.      Exporter::Heavy, Exporter.pm line 18
+     7.    constant, Getopt/Long.pm line 226
+     8.    overload, Getopt/Long.pm line 1487 [Getopt::Long::CallBack]
 
-=head1 AUTHOR
+The load order is listed on the first column. The calling package is
+shown between square brackets if different from the package that can
+be inferred from the file name. Extra information is also provided
+if the module was loaded from within and C<eval>.
+
+Even though using C<-MDevel::TraceUse> is possible, it is preferable to
+use C<-d:TraceUse>, as the debugger will provide more accurate information
+in the case of C<eval>.
+
+=head1 AUTHORS
 
 chromatic, C<< <chromatic at wgz.org> >>
+
+Philippe Bruhat, C<< <book at cpan.org> >>
 
 =head1 BUGS
 
