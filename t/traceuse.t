@@ -6,7 +6,8 @@ use Test::More;
 use IPC::Open3;
 use File::Spec;
 
-my $tlib = File::Spec->catdir( 't', 'lib' );
+my $tlib  = File::Spec->catdir( 't', 'lib' );
+my $tlib2 = File::Spec->catdir( 't', 'lib2' );
 
 # all command lines prefixed with $^X -I"t/lib"
 my @tests = (
@@ -74,6 +75,25 @@ Modules used from -e:
    2.    M2, M1.pm line 3
    3.      M3, M2.pm line 3
 OUT
+    [ << 'OUT', '-d:TraceUse', "-Mlib=$tlib2", '-MM8', '-e1' ],
+Modules used from -e:
+   *.  lib, -e line 0 [main]
+OUT
+    [ << 'OUT', '-d:TraceUse', "-Mlib=$tlib2", '-MM1', '-MM8', '-e1' ],
+Modules used from -e:
+   *.  lib, -e line 0 [main]
+   *.  M1, -e line 0 [main]
+   *.    M2, M1.pm line 3
+   *.      M3, M2.pm line 3
+   *.  M8, -e line 0 [main]
+OUT
+    [ << 'OUT', '-d:TraceUse', "-Mlib=$tlib2", '-MM7', '-MM8', '-e1' ],
+Modules used from -e:
+   *.  lib, -e line 0 [main]
+   *.  M7, -e line 0 [main]
+   *.  M8, -e line 0 [main]
+OUT
+
 );
 
 # -MDevel::TraceUse usually produces the same output as -d:TraceUse
@@ -109,11 +129,33 @@ for my $test (@tests) {
     my @errput = map { chomp; $_ } <ERR>;
     waitpid( $pid, 0 );
 
+    # special case of use lib
+    @errput = clean_lib(@errput) if grep / lib,/, @errput;
+
     # compare the results
     is_deeply(
         \@errput,
         [ split /\n/, $errput ],
         "Trace for: perl @cmd"
     ) or print map { "$_\n" } @errput;
+}
+
+sub clean_lib {
+    my @lines = @_;
+    my $lib   = 0;
+    my $tab;
+    for (@lines) {
+        s/(\d+)\./*./;
+        if (/\.( +)lib,/) {
+            $lib = 1;
+            $tab = $1 . '  ';
+            next;
+        }
+        if ($lib) {
+            if   (/\.$tab/) { $_   = 'deleted' }
+            else            { $lib = 0 }
+        }
+    }
+    return grep { $_ ne 'deleted' } @lines;
 }
 
