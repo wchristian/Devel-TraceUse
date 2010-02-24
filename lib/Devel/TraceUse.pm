@@ -57,14 +57,14 @@ sub trace_use
 	@{$caller}{@caller_info} = caller(0);
 
 	# try to compute a "filename" (as received by require)
-	$caller->{filename} = $caller->{filepath};
+	$caller->{filestring} = $caller->{filename} = $caller->{filepath};
 
 	# some values seen in the wild:
 	# - "(eval $num)[$path:$line]" (debugger)
 	# - "$filename (autosplit into $path)" (AutoLoader)
 	if ( $caller->{filename} =~ /^(\(eval \d+\))(?:\[(.*):(\d+)\])?$/ ) {
 		$info->{eval}       = $1;
-		$caller->{filename} = $2;
+		$caller->{filename} = $caller->{filepath} = $2;
 		$caller->{line}     = $3;
 	}
 

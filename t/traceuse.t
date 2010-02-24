@@ -93,7 +93,6 @@ Modules used from -e:
    *.  M7, -e line 0 [main]
    *.  M8, -e line 0 [main]
 OUT
-
 );
 
 # -MDevel::TraceUse usually produces the same output as -d:TraceUse
@@ -115,6 +114,16 @@ Modules used from -e:
    1.  M1, (eval 1) [main]
    2.    M2, M1.pm line 3
    3.      M3, M2.pm line 3
+OUT
+    [ << 'OUT', qw(-d:TraceUse -MM9 -e1) ],
+Modules used from -e:
+   1.  M9, -e line 0 [main]
+   2.    M6, M9.pm line 3 (eval 1)
+OUT
+    [ << 'OUT', qw(-MDevel::TraceUse -MM9 -e1) ],
+Modules used from -e:
+   1.  M9, -e line 0 [main]
+   2.  M6, (eval 1) [M9]
 OUT
 );
 
