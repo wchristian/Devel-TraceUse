@@ -45,7 +45,7 @@ sub trace_use
 		if $module =~ s/\.pm$//;
 
 	# info about the module being loaded
-	$used{$filename} = my $info = {
+	push @{ $used{$filename} }, my $info = {
 		filename => $filename,
 		module   => $module,
 		rank     => ++$rank,
@@ -90,6 +90,7 @@ sub show_trace
 	my ( $mod, $pos ) = @_;
 
 	if ( ref $mod ) {
+		$mod = shift @$mod;
 		my $caller = $mod->{caller};
 		my $message = sprintf( '%4s.', $mod->{rank} ) . '  ' x $pos;
 		$message .= "$mod->{module},";
@@ -119,7 +120,7 @@ END
 	# map "filename" to "filepath" for everything that was loaded
 	while ( my ( $filename, $filepath ) = each %INC ) {
 		if ( exists $used{$filename} ) {
-			$used{$filename}{loaded} = delete $loaded{$filepath} || [];
+			$used{$filename}[0]{loaded} = delete $loaded{$filepath} || [];
 			$used{$filepath} = delete $used{$filename};
 		}
 	}

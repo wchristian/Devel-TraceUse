@@ -97,6 +97,11 @@ OUT
 Modules used from -e:
    1.  M10, -e line 1 [main] (FAILED)
 OUT
+    [   << 'OUT', qw(-d:TraceUse -e), "eval { require M10 };\npackage M11;\neval { require M10 }" ],
+Modules used from -e:
+   1.  M10, -e line 1 [main] (FAILED)
+   2.  M10, -e line 3 [M11] (FAILED)
+OUT
 );
 
 # -MDevel::TraceUse usually produces the same output as -d:TraceUse
@@ -146,11 +151,9 @@ for my $test (@tests) {
     @errput = clean_lib(@errput) if grep / lib,/, @errput;
 
     # compare the results
-    is_deeply(
-        \@errput,
-        [ split /\n/, $errput ],
-        "Trace for: perl @cmd"
-    ) or print map { "$_\n" } @errput;
+    ( my $mesg = "Trace for: perl @cmd" ) =~ s/\n/\\n/g;
+    is_deeply( \@errput, [ split /\n/, $errput ], $mesg )
+        or print map {"$_\n"} @errput;
 }
 
 # ignore modules loaded by lib, as they may have changed over time
