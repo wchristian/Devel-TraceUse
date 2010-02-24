@@ -93,6 +93,10 @@ Modules used from -e:
    *.  M7, -e line 0 [main]
    *.  M8, -e line 0 [main]
 OUT
+    [ << 'OUT', qw(-d:TraceUse -e), 'eval { require M10 }' ],
+Modules used from -e:
+   1.  M10, -e line 1 [main] (FAILED)
+OUT
 );
 
 # -MDevel::TraceUse usually produces the same output as -d:TraceUse
@@ -149,6 +153,7 @@ for my $test (@tests) {
     ) or print map { "$_\n" } @errput;
 }
 
+# ignore modules loaded by lib, as they may have changed over time
 sub clean_lib {
     my @lines = @_;
     my $lib   = 0;

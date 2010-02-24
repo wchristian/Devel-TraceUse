@@ -101,6 +101,8 @@ sub show_trace
 			if $mod->{eval};
 		$message .= " [$caller->{package}]"
 			if $caller->{package} ne $caller->{filepackage};
+		$message .= " (FAILED)"
+			if !exists $INC{$mod->{filename}};
 		warn "$message\n";
 	}
 	else {
@@ -108,7 +110,7 @@ sub show_trace
 	}
 
 	show_trace( $used{$_}, $pos + 1 )
-		for map { $INC{$_} } @{ $mod->{loaded} };
+		for map { $INC{$_} || $_ } @{ $mod->{loaded} };
 }
 
 END
