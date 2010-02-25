@@ -16,6 +16,7 @@ BEGIN
 my $root = (caller)[1];
 my %used;
 my %loaded;
+my %reported;
 my $rank = 0;
 
 my @caller_info = qw( package filepath line subroutine hasargs
@@ -105,6 +106,7 @@ sub show_trace
 		$message .= " (FAILED)"
 			if !exists $INC{$mod->{filename}};
 		warn "$message\n";
+		$reported{$mod->{filename}}++;
 	}
 	else {
 		$mod = { loaded => delete $loaded{$mod} };
@@ -132,6 +134,16 @@ END
 	# anything left?
 	if (%loaded) {
 		show_trace($_) for sort keys %loaded;
+	}
+
+	# did we miss some modules?
+	if (my @missed
+		= sort grep { !exists $reported{$_} && $_ ne 'Devel/TraceUse.pm' }
+		keys %INC
+		)
+	{
+		warn "Modules used, but not reported:\n" if @missed;
+		warn "  $_\n" for @missed;
 	}
 }
 

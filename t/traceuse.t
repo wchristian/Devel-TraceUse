@@ -78,6 +78,8 @@ OUT
     [ << 'OUT', '-d:TraceUse', "-Mlib=$tlib2", '-MM8', '-e1' ],
 Modules used from -e:
    *.  lib, -e line 0 [main]
+Modules used, but not reported:
+  M8.pm
 OUT
     [ << 'OUT', '-d:TraceUse', "-Mlib=$tlib2", '-MM1', '-MM8', '-e1' ],
 Modules used from -e:
@@ -162,7 +164,7 @@ sub clean_lib {
     my $lib   = 0;
     my $tab;
     for (@lines) {
-        s/(\d+)\./*./;
+        s/^(\s*)(\d+)\./$1*./;
         if (/\.( +)lib,/) {
             $lib = 1;
             $tab = $1 . '  ';
