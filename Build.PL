@@ -45,6 +45,12 @@ my $builder = $class->new(
 	no_index            => {
 	       package => [ 'Foo::Bar', ]
 	},
+    meta_merge => {
+        resources => {
+            repository => 'http://github.com/book/Devel-TraceUse',
+        },
+    },
+
 );
 
 $builder->create_build_script();

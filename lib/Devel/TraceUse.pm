@@ -5,7 +5,7 @@ sub DB {}
 
 package Devel::TraceUse;
 
-our $VERSION = '1.00';
+our $VERSION = '2.00';
 
 BEGIN
 {
@@ -241,6 +241,8 @@ L<http://search.cpan.org/dist/Devel-TraceUse>
 =head1 COPYRIGHT & LICENSE
 
 Copyright 2006 chromatic, most rights reserved.
+
+Copyright 2010 Philippe Bruhat (BooK), for the rewrite.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
