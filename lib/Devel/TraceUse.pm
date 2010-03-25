@@ -184,6 +184,12 @@ shown between square brackets if different from the package that can
 be inferred from the file name. Extra information is also provided
 if the module was loaded from within and C<eval>.
 
+C<Devel::TraceUse> will also report modules that failed to be loaded,
+under the modules that tried to load them.
+
+In the very rare case when C<Devel::TraceUse> is not able to attach
+a loaded module to the tree, it will be reported at the end.
+
 Even though using C<-MDevel::TraceUse> is possible, it is preferable to
 use C<-d:TraceUse>, as the debugger will provide more accurate information
 in the case of C<eval>.
