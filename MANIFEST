@@ -1,15 +1,23 @@
 Build.PL
 Changes
-MANIFEST
-META.yml # Will be created by "make dist"
-README
 lib/Devel/TraceUse.pm
+MANIFEST
+MANIFEST.SKIP
+META.yml			# Will be created by "make dist"
+README
 t/00-load.t
-t/boilerplate.t
-t/developer/pod.t
 t/developer/pod-coverage.t
-t/lib/Parent.pm
+t/developer/pod.t
 t/lib/Child.pm
+t/lib/M1.pm
+t/lib/M2.pm
+t/lib/M3.pm
+t/lib/M4.pm
+t/lib/M5.pm
+t/lib/M6.pm
+t/lib/M7.pm
+t/lib/M9.pm
+t/lib/Parent.pm
 t/lib/Sibling.pm
-t/report.t
-t/tracer.pl
+t/lib2/M8.pm
+t/traceuse.t
