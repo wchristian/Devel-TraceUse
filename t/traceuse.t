@@ -104,6 +104,15 @@ Modules used from -e:
    1.  M10, -e line 1 [main] (FAILED)
    2.  M10, -e line 3 [M11] (FAILED)
 OUT
+    [ << 'OUT', '-d:TraceUse', '-MM7', "-Mlib=$tlib2", '-MM1', '-MM8', '-e1' ],
+Modules used from -e:
+   *.  M7, -e line 0 [main]
+   *.  lib, -e line 0 [main]
+   *.  M1, -e line 0 [main]
+   *.    M2, M1.pm line 3
+   *.      M3, M2.pm line 3
+   *.  M8, -e line 0 [main]
+OUT
 );
 
 # -MDevel::TraceUse usually produces the same output as -d:TraceUse
