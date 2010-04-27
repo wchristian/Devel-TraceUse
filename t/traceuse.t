@@ -146,7 +146,7 @@ for my $test (@tests) {
     # run the test subcommand
     local ( *IN, *OUT, *ERR );
     my $pid = open3( \*IN, \*OUT, \*ERR, $^X, '-Iblib/lib', "-I$tlib", @cmd );
-    my @errput = map { chomp; $_ } <ERR>;
+    my @errput = map { s/[\015\012]*$//; $_ } <ERR>;
     waitpid( $pid, 0 );
 
     # special case of use lib
@@ -154,7 +154,8 @@ for my $test (@tests) {
 
     # compare the results
     ( my $mesg = "Trace for: perl @cmd" ) =~ s/\n/\\n/g;
-    is_deeply( \@errput, [ split /\n/, $errput ], $mesg )
+    is_deeply( \@errput, [ map { s/[\015\012]*$//; $_ } split /^/m, $errput ],
+        $mesg )
         or print map {"$_\n"} @errput;
 }
 
