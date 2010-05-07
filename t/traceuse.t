@@ -113,6 +113,20 @@ Modules used from -e:
    0.      M3, M2.pm line 3
    0.  M8, -e line 0 [main]
 OUT
+    [   << 'OUT', '-d:TraceUse', "-I$tlib2", qw( -MM4 -MM1 -MM8 -MM10 -e M5->load) ],
+Modules used from -e:
+   1.  M4, -e line 0 [main]
+   2.    M5, M4.pm line 3
+   3.      M6, M5.pm line 9 [M5::in]
+  11.      M7, M5.pm line 4
+   4.  M1, -e line 0 [main]
+   5.    M2, M1.pm line 3
+   6.      M3, M2.pm line 3
+   7.  M8, -e line 0 [main]
+   8.  M10, -e line 0 [main]
+   9.    M11, M10.pm line 3 [M8]
+  10.    M12, M10.pm line 4 [M8]
+OUT
 );
 
 # -MDevel::TraceUse usually produces the same output as -d:TraceUse
