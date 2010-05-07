@@ -77,23 +77,23 @@ Modules used from -e:
 OUT
     [ << 'OUT', '-d:TraceUse', "-Mlib=$tlib2", '-MM8', '-e1' ],
 Modules used from -e:
-   *.  lib, -e line 0 [main]
+   0.  lib, -e line 0 [main]
 Modules used, but not reported:
   M8.pm
 OUT
     [ << 'OUT', '-d:TraceUse', "-Mlib=$tlib2", '-MM1', '-MM8', '-e1' ],
 Modules used from -e:
-   *.  lib, -e line 0 [main]
-   *.  M1, -e line 0 [main]
-   *.    M2, M1.pm line 3
-   *.      M3, M2.pm line 3
-   *.  M8, -e line 0 [main]
+   0.  lib, -e line 0 [main]
+   0.  M1, -e line 0 [main]
+   0.    M2, M1.pm line 3
+   0.      M3, M2.pm line 3
+   0.  M8, -e line 0 [main]
 OUT
     [ << 'OUT', '-d:TraceUse', "-Mlib=$tlib2", '-MM7', '-MM8', '-e1' ],
 Modules used from -e:
-   *.  lib, -e line 0 [main]
-   *.  M7, -e line 0 [main]
-   *.  M8, -e line 0 [main]
+   0.  lib, -e line 0 [main]
+   0.  M7, -e line 0 [main]
+   0.  M8, -e line 0 [main]
 OUT
     [ << 'OUT', qw(-d:TraceUse -e), 'eval { require M10 }' ],
 Modules used from -e:
@@ -104,14 +104,14 @@ Modules used from -e:
    1.  M10, -e line 1 [main] (FAILED)
    2.  M10, -e line 3 [M11] (FAILED)
 OUT
-    [ << 'OUT', '-d:TraceUse', '-MM7', "-Mlib=$tlib2", '-MM1', '-MM8', '-e1' ],
+    [   << 'OUT', '-d:TraceUse', '-MM7', "-Mlib=$tlib2", '-MM1', '-MM8', '-e1' ],
 Modules used from -e:
-   *.  M7, -e line 0 [main]
-   *.  lib, -e line 0 [main]
-   *.  M1, -e line 0 [main]
-   *.    M2, M1.pm line 3
-   *.      M3, M2.pm line 3
-   *.  M8, -e line 0 [main]
+   0.  M7, -e line 0 [main]
+   0.  lib, -e line 0 [main]
+   0.  M1, -e line 0 [main]
+   0.    M2, M1.pm line 3
+   0.      M3, M2.pm line 3
+   0.  M8, -e line 0 [main]
 OUT
 );
 
@@ -173,7 +173,7 @@ sub clean_lib {
     my $lib   = 0;
     my $tab;
     for (@lines) {
-        s/^(\s*)(\d+)\./$1*./;
+        s/^(\s*)(\d+)\./${1}0./;
         if (/\.( +)lib,/) {
             $lib = 1;
             $tab = $1 . '  ';
