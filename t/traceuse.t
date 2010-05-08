@@ -172,31 +172,41 @@ for my $test (@tests) {
     my @errput = map { s/[\015\012]*$//; $_ } <ERR>;
     waitpid( $pid, 0 );
 
-    # special case of use lib
-    @errput = clean_lib(@errput) if grep / lib,/, @errput;
+    # some extra libraries we want to ignore
+    my $nums = 1;
+    for my $lib (qw( lib sitecustomize.pl )) {
+        if ( grep /\. +.*\Q$lib\E,/, @errput ) {
+            @errput = normalize( $lib, @errput );
+            $nums = 0;
+        }
+    }
 
     # compare the results
     ( my $mesg = "Trace for: perl @cmd" ) =~ s/\n/\\n/g;
-    is_deeply( \@errput, [ map { s/[\015\012]*$//; $_ } split /^/m, $errput ],
-        $mesg )
-        or print map {"$_\n"} @errput;
+    my @expected = map { s/[\015\012]*$//; $_ } split /^/, $errput;
+    @expected = map { s/^(\s*\d+)\./%%%%./; $_ } @expected if !$nums;
+
+    is_deeply( \@errput, \@expected, $mesg )
+        or diag map ( {"$_\n"} '--- Got ---', @errput ),
+        "--- Expected ---\n$errput";
 }
 
-# ignore modules loaded by lib, as they may have changed over time
-sub clean_lib {
-    my @lines = @_;
-    my $lib   = 0;
+# removes unexpected modules loaded by somewhat expected ones
+# and normalize the errput so we can ignore them
+sub normalize {
+    my ( $lib, @lines ) = @_;
+    my $loaded_by = 0;
     my $tab;
     for (@lines) {
-        s/^(\s*)(\d+)\./${1}0./;
-        if (/\.( +)lib,/) {
-            $lib = 1;
-            $tab = $1 . '  ';
+        s/^(\s*\d+)\./%%%%./;
+        if (/\.( +)\Q$lib\E,/) {
+            $loaded_by = 1;
+            $tab       = $1 . '  ';
             next;
         }
-        if ($lib) {
-            if   (/\.$tab/) { $_   = 'deleted' }
-            else            { $lib = 0 }
+        if ($loaded_by) {
+            if   (/^%%%%\.$tab/) { $_         = 'deleted' }
+            else                 { $loaded_by = 0 }
         }
     }
     return grep { $_ ne 'deleted' } @lines;
