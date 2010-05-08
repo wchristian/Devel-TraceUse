@@ -5,6 +5,7 @@ use warnings;
 use Test::More;
 use IPC::Open3;
 use File::Spec;
+use Config;
 
 my $tlib  = File::Spec->catdir( 't', 'lib' );
 my $tlib2 = File::Spec->catdir( 't', 'lib2' );
@@ -172,7 +173,7 @@ for my $test (@tests) {
     my @errput = map { s/[\015\012]*$//; $_ } <ERR>;
     waitpid( $pid, 0 );
 
-    # some extra libraries we want to ignore
+    # we want to ignore modules loaded by those libraries
     my $nums = 1;
     for my $lib (qw( lib sitecustomize.pl )) {
         if ( grep /\. +.*\Q$lib\E,/, @errput ) {
@@ -180,6 +181,10 @@ for my $test (@tests) {
             $nums = 0;
         }
     }
+
+    # take sitecustomize.pl into account in our expected errput
+    ( $nums, $errput ) = add_sitecustomize( $nums, $errput, @cmd )
+        if $Config{usesitecustomize};
 
     # compare the results
     ( my $mesg = "Trace for: perl @cmd" ) =~ s/\n/\\n/g;
@@ -210,5 +215,43 @@ sub normalize {
         }
     }
     return grep { $_ ne 'deleted' } @lines;
+}
+
+my $diag;
+
+sub add_sitecustomize {
+    my ( $nums, $errput, @cmd ) = @_;
+    my $sitecustomize
+        = File::Spec->catfile( $Config{sitelib}, 'sitecustomize.pl' );
+
+    # provide some info to the tester
+    if ( !$diag++ ) {
+        diag "This perl has sitecustomize.pl enabled, ",
+            -e $sitecustomize
+            ? "and the file exists"
+            : "but the file does not exist";
+    }
+    if ( -e $sitecustomize ) {
+
+        # Loaded so first it's not caught by our @INC hook:
+        #  Modules used, but not reported:
+        #    /home/book/local/5.8.9/site/lib/sitecustomize.pl
+        $errput =~ s/Modules used, but not reported:.*?^(.*)//gsm;
+        my @not_reported = ( "  $sitecustomize\n", $1 ? split /^/, $1 : () );
+        $errput .= "Modules used, but not reported:\n" . join '',
+            sort @not_reported;
+    }
+    elsif ( grep { $_ eq '-d:TraceUse' } @cmd ) {
+
+        # Loaded first, but FAIL. The debugger will tell us.
+        #  Modules used from -e:
+        #     1.  C:/perl/site/lib/sitecustomize.pl, -e line 0 [main] (FAILED)
+        $errput =~ s{Modules used from.*?^}
+                    {$&   0.  $sitecustomize, -e line 0 [main] (FAILED)\n}sm;
+        $nums = 0;
+    }
+
+    # updated values
+    return ( $nums, $errput );
 }
 
