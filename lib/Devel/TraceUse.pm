@@ -1,11 +1,12 @@
-package DB;
+package # hide package name from indexer
+  DB;
 
 # allow -d:TraceUse loading with this little C++-style no-op
 sub DB {}
 
 package Devel::TraceUse;
 
-our $VERSION = '2.00';
+our $VERSION = '2.01';
 
 BEGIN
 {
