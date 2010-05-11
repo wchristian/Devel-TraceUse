@@ -225,7 +225,7 @@ sub add_sitecustomize {
         = File::Spec->catfile( $Config{sitelib}, 'sitecustomize.pl' );
     my $sitecustomize = do {
         my @parts = File::Spec->splitpath($sitecustomize_path);
-        splice @parts, 1, File::Spec->splitdir( $parts[1] );
+        splice @parts, 1, 1, grep {length} File::Spec->splitdir( $parts[1] );
         join '/', @parts;
     };
 
