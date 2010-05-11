@@ -1,5 +1,11 @@
 Revision history for Devel-TraceUse
 
+2.01 Tue May 11 09:38:20 CEST 2010
+    No code change, but:
+    - improved test suite to work with Win32 and sitecustomize.pl
+      (many thanks to Apocalypse (APOCAL) for Win32 testing)
+    - work around search.cpan.org indexing
+
 2.00 Thu Mar 25 23:17:02 CET 2010
     Complete rewrite by Philippe Bruhat (BooK):
     - build a more correct load tree, including modules loaded at runtime

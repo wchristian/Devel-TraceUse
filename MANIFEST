@@ -19,5 +19,8 @@ t/lib/M7.pm
 t/lib/M9.pm
 t/lib/Parent.pm
 t/lib/Sibling.pm
+t/lib2/M10.pm
+t/lib2/M11.pm
+t/lib2/M12.pm
 t/lib2/M8.pm
 t/traceuse.t

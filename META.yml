@@ -1,6 +1,6 @@
 ---
 name: Devel-TraceUse
-version: 2.00
+version: 2.01
 author:
   - 'chromatic <chromatic@wgz.org>'
 abstract: 'show the modules your program loads, recursively'
@@ -11,11 +11,9 @@ resources:
 build_requires:
   Test::More: 0
 provides:
-  DB:
-    file: lib/Devel/TraceUse.pm
   Devel::TraceUse:
     file: lib/Devel/TraceUse.pm
-    version: 2.00
+    version: 2.01
 no_index:
   package:
     - Foo::Bar
