@@ -138,13 +138,13 @@ for ( 0 .. $#tests ) {
 
 # but there are some exceptions
 push @tests, (
-    [ << 'OUT', qw(-d:TraceUse -e), 'eval "use M1"' ],
+    [ << 'OUT', qw(-d:TraceUse -e), 'eval q(use M1)' ],
 Modules used from -e:
    1.  M1, -e line 1 (eval 1) [main]
    2.    M2, M1.pm line 3
    3.      M3, M2.pm line 3
 OUT
-    [ << 'OUT', qw(-MDevel::TraceUse -e), 'eval "use M1"' ],
+    [ << 'OUT', qw(-MDevel::TraceUse -e), 'eval q(use M1)' ],
 Modules used from -e:
    1.  M1, (eval 1) [main]
    2.    M2, M1.pm line 3
