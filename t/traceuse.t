@@ -221,17 +221,24 @@ my $diag;
 
 sub add_sitecustomize {
     my ( $nums, $errput, @cmd ) = @_;
-    my $sitecustomize
+    my $sitecustomize_path
         = File::Spec->catfile( $Config{sitelib}, 'sitecustomize.pl' );
+    my $sitecustomize = do {
+        my @parts = File::Spec->splitpath($sitecustomize_path);
+        splice @parts, 1, File::Spec->splitdir( $parts[1] );
+        join '/', @parts;
+    };
 
     # provide some info to the tester
     if ( !$diag++ ) {
         diag "This perl has sitecustomize.pl enabled, ",
-            -e $sitecustomize
+            -e $sitecustomize_path
             ? "and the file exists"
             : "but the file does not exist";
     }
-    if ( -e $sitecustomize ) {
+
+    # the output depends on the existence of sitecustomize.pl
+    if ( -e $sitecustomize_path ) {
 
         # Loaded so first it's not caught by our @INC hook:
         #  Modules used, but not reported:
