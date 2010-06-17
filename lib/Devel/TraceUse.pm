@@ -134,7 +134,7 @@ END
 
 	# anything left?
 	if (%loaded) {
-		show_trace($_) for sort keys %loaded;
+		show_trace( $_, 0 ) for sort keys %loaded;
 	}
 
 	# did we miss some modules?
