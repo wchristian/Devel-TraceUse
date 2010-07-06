@@ -95,7 +95,9 @@ sub show_trace
 		$mod = shift @$mod;
 		my $caller = $mod->{caller};
 		my $message = sprintf( '%4s.', $mod->{rank} ) . '  ' x $pos;
-		$message .= "$mod->{module},";
+		$message .= "$mod->{module}";
+		my $version = $mod->{module}->VERSION;
+		$message .= defined $version ? " $version," : ',';
 		$message .= " $caller->{filename}"
 			if defined $caller->{filename};
 		$message .= " line $caller->{line}"
@@ -170,17 +172,18 @@ This will display a tree of the modules ultimately used to run your program.
 to the end.)
 
   Modules used from your_program.pl:
-     1.  strict, your_program.pl line 1 [main]
-     2.  warnings, your_program.pl line 2 [main]
-     3.  Getopt::Long, your_program.pl line 3 [main]
-     4.    vars, Getopt/Long.pm line 37
-     5.      warnings::register, vars.pm line 7
-     6.    Exporter, Getopt/Long.pm line 43
-     9.      Exporter::Heavy, Exporter.pm line 18
-     7.    constant, Getopt/Long.pm line 226
-     8.    overload, Getopt/Long.pm line 1487 [Getopt::Long::CallBack]
+     1.  strict 1.04, your_program.pl line 1 [main]
+     2.  warnings 1.06, your_program.pl line 2 [main]
+     3.  Getopt::Long 2.37, your_program.pl line 3 [main]
+     4.    vars 1.01, Getopt/Long.pm line 37
+     5.      warnings::register 1.01, vars.pm line 7
+     6.    Exporter 5.62, Getopt/Long.pm line 43
+     9.      Exporter::Heavy 5.62, Exporter.pm line 18
+     7.    constant 1.13, Getopt/Long.pm line 226
+     8.    overload 1.06, Getopt/Long.pm line 1487 [Getopt::Long::CallBack]
 
-The load order is listed on the first column. The calling package is
+The load order is listed on the first column. The version is displayed
+after the module name, if available. The calling package is
 shown between square brackets if different from the package that can
 be inferred from the file name. Extra information is also provided
 if the module was loaded from within and C<eval>.
