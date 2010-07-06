@@ -6,9 +6,11 @@ use Test::More;
 use IPC::Open3;
 use File::Spec;
 use Config;
+use lib ();
 
 my $tlib  = File::Spec->catdir( 't', 'lib' );
 my $tlib2 = File::Spec->catdir( 't', 'lib2' );
+my $vlib  = defined $lib::VERSION ? " $lib::VERSION" : '';
 
 # all command lines prefixed with $^X -I"t/lib"
 my @tests = (
@@ -76,23 +78,23 @@ Modules used from -e:
    2.    M2, M1.pm line 3
    3.      M3, M2.pm line 3
 OUT
-    [ << 'OUT', '-d:TraceUse', "-Mlib=$tlib2", '-MM8', '-e1' ],
+    [ << "OUT", '-d:TraceUse', "-Mlib=$tlib2", '-MM8', '-e1' ],
 Modules used from -e:
-   0.  lib, -e line 0 [main]
+   0.  lib$vlib, -e line 0 [main]
 Modules used, but not reported:
   M8.pm
 OUT
-    [ << 'OUT', '-d:TraceUse', "-Mlib=$tlib2", '-MM1', '-MM8', '-e1' ],
+    [ << "OUT", '-d:TraceUse', "-Mlib=$tlib2", '-MM1', '-MM8', '-e1' ],
 Modules used from -e:
-   0.  lib, -e line 0 [main]
+   0.  lib$vlib, -e line 0 [main]
    0.  M1, -e line 0 [main]
    0.    M2, M1.pm line 3
    0.      M3, M2.pm line 3
    0.  M8, -e line 0 [main]
 OUT
-    [ << 'OUT', '-d:TraceUse', "-Mlib=$tlib2", '-MM7', '-MM8', '-e1' ],
+    [ << "OUT", '-d:TraceUse', "-Mlib=$tlib2", '-MM7', '-MM8', '-e1' ],
 Modules used from -e:
-   0.  lib, -e line 0 [main]
+   0.  lib$vlib, -e line 0 [main]
    0.  M7, -e line 0 [main]
    0.  M8, -e line 0 [main]
 OUT
@@ -105,10 +107,10 @@ Modules used from -e:
    1.  M10, -e line 1 [main] (FAILED)
    2.  M10, -e line 3 [M11] (FAILED)
 OUT
-    [   << 'OUT', '-d:TraceUse', '-MM7', "-Mlib=$tlib2", '-MM1', '-MM8', '-e1' ],
+    [   << "OUT", '-d:TraceUse', '-MM7', "-Mlib=$tlib2", '-MM1', '-MM8', '-e1' ],
 Modules used from -e:
    0.  M7, -e line 0 [main]
-   0.  lib, -e line 0 [main]
+   0.  lib$vlib, -e line 0 [main]
    0.  M1, -e line 0 [main]
    0.    M2, M1.pm line 3
    0.      M3, M2.pm line 3
@@ -176,7 +178,7 @@ for my $test (@tests) {
     # we want to ignore modules loaded by those libraries
     my $nums = 1;
     for my $lib (qw( lib sitecustomize.pl )) {
-        if ( grep /\. +.*\Q$lib\E,/, @errput ) {
+        if ( grep /\. +.*\Q$lib\E[ ,]/, @errput ) {
             @errput = normalize( $lib, @errput );
             $nums = 0;
         }
@@ -204,7 +206,7 @@ sub normalize {
     my $tab;
     for (@lines) {
         s/^(\s*\d+)\./%%%%./;
-        if (/\.( +)\Q$lib\E,/) {
+        if (/\.( +)\Q$lib\E[^,]*,/) {
             $loaded_by = 1;
             $tab       = $1 . '  ';
             next;
