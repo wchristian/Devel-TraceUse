@@ -178,7 +178,7 @@ for my $test (@tests) {
     # we want to ignore modules loaded by those libraries
     my $nums = 1;
     for my $lib (qw( lib sitecustomize.pl )) {
-        if ( grep /\. +.*\Q$lib\E[ ,]/, @errput ) {
+        if ( grep /\. +.*\Q$lib\E[^,]*,/, @errput ) {
             @errput = normalize( $lib, @errput );
             $nums = 0;
         }
