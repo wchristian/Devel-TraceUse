@@ -235,8 +235,8 @@ sub add_sitecustomize {
     if ( !$diag++ ) {
         diag "This perl has sitecustomize.pl enabled, ",
             -e $sitecustomize_path
-            ? "and the file exists"
-            : "but the file does not exist";
+            ? "and the file $sitecustomize_path exists"
+            : "but the file $sitecustomize_path does not exist";
     }
 
     # the output depends on the existence of sitecustomize.pl
