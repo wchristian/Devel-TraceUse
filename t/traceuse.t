@@ -225,11 +225,7 @@ sub add_sitecustomize {
     my ( $nums, $errput, @cmd ) = @_;
     my $sitecustomize_path
         = File::Spec->catfile( $Config{sitelib}, 'sitecustomize.pl' );
-    my $sitecustomize = do {
-        my @parts = File::Spec->splitpath($sitecustomize_path);
-        splice @parts, 1, 1, grep {length} File::Spec->splitdir( $parts[1] );
-        join '/', @parts;
-    };
+    my ($sitecustomize) = grep { /sitecustomize\.pl$/ } keys %INC;
 
     # provide some info to the tester
     if ( !$diag++ ) {
@@ -237,6 +233,8 @@ sub add_sitecustomize {
             -e $sitecustomize_path
             ? "and the file $sitecustomize_path exists"
             : "but the file $sitecustomize_path does not exist";
+        diag "$sitecustomize was loaded successfully"
+            if $sitecustomize;
     }
 
     # the output depends on the existence of sitecustomize.pl
@@ -252,12 +250,14 @@ sub add_sitecustomize {
     }
     elsif ( grep { $_ eq '-d:TraceUse' } @cmd ) {
 
-        # Loaded first, but FAIL. The debugger will tell us.
+        # Loaded first, but FAIL. The debugger will tell us with an older Perl.
         #  Modules used from -e:
         #     1.  C:/perl/site/lib/sitecustomize.pl, -e line 0 [main] (FAILED)
-        $errput =~ s{Modules used from.*?^}
-                    {$&   0.  $sitecustomize, -e line 0 [main] (FAILED)\n}sm;
-        $nums = 0;
+        if ( $] < 5.011 ) {
+            $errput =~ s{Modules used from.*?^}
+                        {$&   0.  $sitecustomize, -e line 0 [main] (FAILED)\n}sm;
+            $nums = 0;
+        }
     }
 
     # updated values
