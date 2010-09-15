@@ -20,6 +20,21 @@ my %loaded;
 my %reported;
 my $rank = 0;
 
+# Hide core modules (for the specified version)?
+my $hide_core = 0;
+
+sub import {
+	my $class = shift;
+
+	for(@_) {
+		if(/^hidecore(?::(.*))?/) {
+			$hide_core = $1 ? version->new($1)->numify : $];
+		} else {
+			die "Unknown argument to $class: $_\n";
+		}
+	}
+}
+
 my @caller_info = qw( package filepath line subroutine hasargs
 	wantarray evaltext is_require hints bitmask hinthash );
 
@@ -91,6 +106,8 @@ sub show_trace
 {
 	my ( $mod, $pos ) = @_;
 
+	my $hide = 0;
+
 	if ( ref $mod ) {
 		$mod = shift @$mod;
 		my $caller = $mod->{caller};
@@ -108,14 +125,20 @@ sub show_trace
 			if $caller->{package} ne $caller->{filepackage};
 		$message .= " (FAILED)"
 			if !exists $INC{$mod->{filename}};
-		warn "$message\n";
+
+		if($hide_core) {
+			$hide = exists $Module::CoreList::version{$hide_core}{$mod->{module}};
+		}
+
+		warn "$message\n" unless $hide;
+
 		$reported{$mod->{filename}}++;
 	}
 	else {
 		$mod = { loaded => delete $loaded{$mod} };
 	}
 
-	show_trace( $used{$_}, $pos + 1 )
+	show_trace( $used{$_}, $hide ? $pos : $pos + 1 )
 		for map { $INC{$_} || $_ } @{ $mod->{loaded} };
 }
 
@@ -128,6 +151,13 @@ END
 			$used{$filename}[0]{loaded} = delete $loaded{$filepath} || [];
 			$used{$filepath} = delete $used{$filename};
 		}
+	}
+
+	if($hide_core) {
+		# Load Module::CoreList if needed
+		local @INC = grep { !ref || $_ != \&trace_use } @INC;
+		local %INC = %INC; # don't report it loaded
+		require Module::CoreList;
 	}
 
 	# output the diagnostic
@@ -197,6 +227,20 @@ a loaded module to the tree, it will be reported at the end.
 Even though using C<-MDevel::TraceUse> is possible, it is preferable to
 use C<-d:TraceUse>, as the debugger will provide more accurate information
 in the case of C<eval>.
+
+You can hide the core modules that your program used by providing the
+C<hidecore> argument:
+
+  $ B<perl -d:TraceUse=hidecore your_program.pl>
+
+This will not renumber the modules so the core module's positions will be
+visible as gaps in the numbering. In some cases evidence may also be visible of
+the core module's usage (e.g. a caller shown as L<base> or L<parent>).
+
+You may also specify a version of perl to hide the core modules for (the
+default is the running version):
+
+  B<-d:TraceUse=hidecore:5.8.1>
 
 =head1 AUTHORS
 

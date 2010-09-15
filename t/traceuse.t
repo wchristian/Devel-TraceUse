@@ -130,12 +130,27 @@ Modules used from -e:
    9.    M11 1.01, M10.pm line 3 [M8]
   10.    M12 1.12, M10.pm line 4 [M8]
 OUT
+    [   << 'OUT', '-d:TraceUse', '-Mstrict', '-e1'],
+Modules used from -e:
+   1.  strict %%%, -e line 0 [main]
+OUT
+    [   << 'OUT', '-d:TraceUse=hidecore', '-Mstrict', '-e1'],
+Modules used from -e:
+OUT
+    [   << 'OUT', '-d:TraceUse=hidecore:5.0', '-Mstrict', '-e1'],
+Modules used from -e:
+OUT
+    [   << 'OUT', '-d:TraceUse=hidecore:4.0', '-Mstrict', '-e1'],
+Modules used from -e:
+   1.  strict %%%, -e line 0 [main]
+OUT
 );
 
 # -MDevel::TraceUse usually produces the same output as -d:TraceUse
 for ( 0 .. $#tests ) {
     push( @tests, [ @{ $tests[$_] } ] );
-    $tests[-1][1] = '-MDevel::TraceUse';
+    # keep options the same
+    $tests[-1][1] =~ s/^-d:TraceUse/-MDevel::TraceUse/;
 }
 
 # but there are some exceptions
@@ -187,6 +202,9 @@ for my $test (@tests) {
     # take sitecustomize.pl into account in our expected errput
     ( $nums, $errput ) = add_sitecustomize( $nums, $errput, @cmd )
         if $Config{usesitecustomize};
+
+    # remove version number of core modules used in testing
+    s/(strict )[^,]+,/$1%%%,/g for @errput;
 
     # compare the results
     ( my $mesg = "Trace for: perl @cmd" ) =~ s/\n/\\n/g;

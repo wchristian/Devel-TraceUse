@@ -41,6 +41,11 @@ my $builder = $class->new(
     build_requires => {
         'Test::More' => 0,
     },
+    requires => {
+        # But only if "hidecore" is used.
+        'Module::CoreList' => 0,
+        version => 0,
+    },
     add_to_cleanup      => [ 'Devel-TraceUse-*' ],
 	no_index            => {
 	       package => [ 'Foo::Bar', ]
