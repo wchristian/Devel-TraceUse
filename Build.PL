@@ -8,7 +8,7 @@ use warnings;
 my $builder = Module::Build->new(
     module_name         => 'Devel::TraceUse',
     license             => 'perl',
-    dist_author         => 'chromatic <chromatic@wgz.org>',
+    dist_author         => 'Philippe Bruhat (BooK) <book@cpan.org>',
     dist_version_from   => 'lib/Devel/TraceUse.pm',
     build_requires => {
         'Test::More' => 0,
@@ -22,7 +22,6 @@ my $builder = Module::Build->new(
             repository => 'http://github.com/book/Devel-TraceUse',
         },
     },
-
 );
 
 $builder->create_build_script();
