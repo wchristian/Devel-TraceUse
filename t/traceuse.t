@@ -146,6 +146,10 @@ OUT
         [ << 'OUT', '-d:TraceUse=hidecore:5.006001', '-MConfig', '-e1' ],
 Modules used from -e:
 OUT
+        [ << "OUT", '-d:TraceUse=hidecore:4', '-e1' ],
+Module::CoreList $Module::CoreList::VERSION doesn't know about Perl 4
+Modules used from -e:
+OUT
         ;
 
     # Module::CoreList didn't know about 5.001 until its version 2.00
