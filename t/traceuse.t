@@ -146,6 +146,19 @@ Modules used from -e:
 OUT
 );
 
+# Module::CoreList-related tests
+if (eval { require Module::CoreList; 1; } ) {
+    diag "Module::CoreList $Module::CoreList::VERSION installed";
+}
+else {
+    diag "Module::CoreList not installed";
+    push @tests, [ << 'OUT', '-d:TraceUse=hidecore', '-e1' ],
+Can't locate Module/CoreList.pm in @INC (@INC contains: <DELETED>)
+END failed--call queue aborted.
+OUT
+        ;
+}
+
 # -MDevel::TraceUse usually produces the same output as -d:TraceUse
 for ( 0 .. $#tests ) {
     push( @tests, [ @{ $tests[$_] } ] );
@@ -205,6 +218,9 @@ for my $test (@tests) {
 
     # remove version number of core modules used in testing
     s/(strict )[^,]+,/$1%%%,/g for @errput;
+
+    # clean up the "Can't locate" error message
+    $errput[0] =~ s/\(\@INC contains: .*/(\@INC contains: <DELETED>)/;
 
     # compare the results
     ( my $mesg = "Trace for: perl @cmd" ) =~ s/\n/\\n/g;
