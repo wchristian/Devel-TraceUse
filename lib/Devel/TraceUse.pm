@@ -169,11 +169,14 @@ END
 		}
 	}
 
-	if($hide_core) {
-		# Load Module::CoreList if needed
-		local @INC = grep { !ref || $_ != \&trace_use } @INC;
-		local %INC = %INC; # don't report it loaded
+	# load Module::CoreList if needed
+	if ($hide_core) {
+		local @INC = grep { $_ ne \&trace_use } @INC;
+		local %INC = %INC;    # don't report it loaded
 		require Module::CoreList;
+		warn sprintf "Module::CoreList %s doesn't know about Perl %s\n",
+			$Module::CoreList::VERSION, $hide_core
+			if !exists $Module::CoreList::version{$hide_core};
 	}
 
 	# output the diagnostic
