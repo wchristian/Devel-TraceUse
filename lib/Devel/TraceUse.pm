@@ -19,12 +19,16 @@ my %used;
 my %loaded;
 my %reported;
 my $rank = 0;
+my $quiet = 1;
 
 # Hide core modules (for the specified version)?
 my $hide_core = 0;
 
 sub import {
 	my $class = shift;
+
+	# ensure "use Devel::TraceUse ();" will produce no output
+	$quiet = 0;
 
 	for(@_) {
 		if(/^hidecore(?::(.*))?/) {
@@ -144,6 +148,7 @@ sub show_trace
 
 END
 {
+	return if $quiet;
 
 	# map "filename" to "filepath" for everything that was loaded
 	while ( my ( $filename, $filepath ) = each %INC ) {
