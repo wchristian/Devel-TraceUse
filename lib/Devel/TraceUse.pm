@@ -33,7 +33,7 @@ sub import {
 	# process options
 	for(@_) {
 		if(/^hidecore(?::(.*))?/) {
-			$hide_core = $1 ? numify($1) : $];
+			$hide_core = numify( $1 ? $1 : $] );
 		} else {
 			die "Unknown argument to $class: $_\n";
 		}
