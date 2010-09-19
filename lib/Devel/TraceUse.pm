@@ -30,9 +30,10 @@ sub import {
 	# ensure "use Devel::TraceUse ();" will produce no output
 	$quiet = 0;
 
+	# process options
 	for(@_) {
 		if(/^hidecore(?::(.*))?/) {
-			$hide_core = $1 ? version->new($1)->numify : $];
+			$hide_core = $1 ? numify($1) : $];
 		} else {
 			die "Unknown argument to $class: $_\n";
 		}
@@ -144,6 +145,16 @@ sub show_trace
 
 	show_trace( $used{$_}, $hide ? $pos : $pos + 1 )
 		for map { $INC{$_} || $_ } @{ $mod->{loaded} };
+}
+
+# we don't want to use version.pm on old Perls
+sub numify {
+	my ($version) = @_;
+	my @parts = map { (length) < 3 ? sprintf "%03d", $_ : $_ }
+		split /\./, $version;
+
+	# %Module::CoreList::version's keys are x.yyyzzz *numbers*
+	return 0+ join '.', shift @parts, join '', @parts;
 }
 
 END
