@@ -248,6 +248,8 @@ Even though using C<-MDevel::TraceUse> is possible, it is preferable to
 use C<-d:TraceUse>, as the debugger will provide more accurate information
 in the case of C<eval>.
 
+=head2 Parameters
+
 You can hide the core modules that your program used by providing the
 C<hidecore> argument:
 
@@ -257,10 +259,15 @@ This will not renumber the modules so the core module's positions will be
 visible as gaps in the numbering. In some cases evidence may also be visible of
 the core module's usage (e.g. a caller shown as L<base> or L<parent>).
 
-You may also specify a version of perl to hide the core modules for (the
-default is the running version):
+You may also specify the version of Perl for which you want to hide the core
+modules (the default is the running version):
 
   B<-d:TraceUse=hidecore:5.8.1>
+
+The version string can be given as I<x.yyy.zzz> (dot-separated) or
+I<x.yyyzzz> (decimal). For example, the strings C<5.8.1>, C<5.08.01>,
+C<5.008.001> and C<5.008001> will all represent Perl version 5.8.1,
+and C<5.5.30>, C<5.005_03> will all represent Perl version 5.005_03.
 
 =head1 AUTHORS
 
