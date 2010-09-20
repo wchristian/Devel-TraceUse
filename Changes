@@ -1,5 +1,9 @@
 Revision history for Devel-TraceUse
 
+2.03
+    - The 'hidecore' option will hide core modules in the output
+      (initial patch by David Leadbeater)
+
 2.02 Wed Jul  7 17:41:16 CEST 2010
     - Added the module version (if available) to the output
     - Improved test suite for Win32 and sitecustomize.pl
