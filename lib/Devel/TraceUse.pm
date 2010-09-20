@@ -150,6 +150,7 @@ sub show_trace
 # we don't want to use version.pm on old Perls
 sub numify {
 	my ($version) = @_;
+	$version =~ y/_//d;
 	my @parts = map { (length) < 3 ? sprintf "%03d", $_ : $_ }
 		split /\./, $version;
 
