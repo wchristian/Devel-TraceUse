@@ -132,10 +132,47 @@ Modules used from -e:
 OUT
 );
 
+# Module::CoreList-related tests
+if ( eval { require Module::CoreList; 1; } ) {
+    diag "Module::CoreList $Module::CoreList::VERSION installed";
+
+    # Module::CoreList always knew about those
+    push @tests, [ << 'OUT', '-d:TraceUse=hidecore', '-Mstrict', '-e1' ],
+Modules used from -e:
+OUT
+        [ << 'OUT', '-d:TraceUse=hidecore:5.5.30', '-MConfig', '-e1' ],
+Modules used from -e:
+OUT
+        [ << 'OUT', '-d:TraceUse=hidecore:5.006001', '-MConfig', '-e1' ],
+Modules used from -e:
+OUT
+        [ << "OUT", '-d:TraceUse=hidecore:4', '-e1' ],
+Module::CoreList $Module::CoreList::VERSION doesn't know about Perl 4
+Modules used from -e:
+OUT
+        ;
+
+    # Module::CoreList didn't know about 5.001 until its version 2.00
+    push @tests, [ << 'OUT', '-d:TraceUse=hidecore:5.1', '-MConfig', '-e1' ],
+Modules used from -e:
+   1.  Config, -e line 0 [main]
+OUT
+        if $Module::CoreList::VERSION >= 2;
+}
+else {
+    diag "Module::CoreList not installed";
+    push @tests, [ << 'OUT', '-d:TraceUse=hidecore', '-e1' ],
+Can't locate Module/CoreList.pm in @INC (@INC contains: <DELETED>)
+END failed--call queue aborted.
+OUT
+        ;
+}
+
 # -MDevel::TraceUse usually produces the same output as -d:TraceUse
 for ( 0 .. $#tests ) {
     push( @tests, [ @{ $tests[$_] } ] );
-    $tests[-1][1] = '-MDevel::TraceUse';
+    # keep options the same
+    $tests[-1][1] =~ s/^-d:TraceUse/-MDevel::TraceUse/;
 }
 
 # but there are some exceptions
@@ -187,6 +224,12 @@ for my $test (@tests) {
     # take sitecustomize.pl into account in our expected errput
     ( $nums, $errput ) = add_sitecustomize( $nums, $errput, @cmd )
         if $Config{usesitecustomize};
+
+    # remove version number of core modules used in testing
+    s/(strict )[^,]+,/$1%%%,/g for @errput;
+
+    # clean up the "Can't locate" error message
+    $errput[0] =~ s/\(\@INC contains: .*/(\@INC contains: <DELETED>)/;
 
     # compare the results
     ( my $mesg = "Trace for: perl @cmd" ) =~ s/\n/\\n/g;

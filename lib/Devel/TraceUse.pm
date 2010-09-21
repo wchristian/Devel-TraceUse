@@ -19,6 +19,26 @@ my %used;
 my %loaded;
 my %reported;
 my $rank = 0;
+my $quiet = 1;
+
+# Hide core modules (for the specified version)?
+my $hide_core = 0;
+
+sub import {
+	my $class = shift;
+
+	# ensure "use Devel::TraceUse ();" will produce no output
+	$quiet = 0;
+
+	# process options
+	for(@_) {
+		if(/^hidecore(?::(.*))?/) {
+			$hide_core = numify( $1 ? $1 : $] );
+		} else {
+			die "Unknown argument to $class: $_\n";
+		}
+	}
+}
 
 my @caller_info = qw( package filepath line subroutine hasargs
 	wantarray evaltext is_require hints bitmask hinthash );
@@ -91,6 +111,8 @@ sub show_trace
 {
 	my ( $mod, $pos ) = @_;
 
+	my $hide = 0;
+
 	if ( ref $mod ) {
 		$mod = shift @$mod;
 		my $caller = $mod->{caller};
@@ -108,19 +130,37 @@ sub show_trace
 			if $caller->{package} ne $caller->{filepackage};
 		$message .= " (FAILED)"
 			if !exists $INC{$mod->{filename}};
-		warn "$message\n";
+
+		if($hide_core) {
+			$hide = exists $Module::CoreList::version{$hide_core}{$mod->{module}};
+		}
+
+		warn "$message\n" unless $hide;
+
 		$reported{$mod->{filename}}++;
 	}
 	else {
 		$mod = { loaded => delete $loaded{$mod} };
 	}
 
-	show_trace( $used{$_}, $pos + 1 )
+	show_trace( $used{$_}, $hide ? $pos : $pos + 1 )
 		for map { $INC{$_} || $_ } @{ $mod->{loaded} };
+}
+
+# we don't want to use version.pm on old Perls
+sub numify {
+	my ($version) = @_;
+	$version =~ y/_//d;
+	my @parts = map { (length) < 3 ? sprintf "%03d", $_ : $_ }
+		split /\./, $version;
+
+	# %Module::CoreList::version's keys are x.yyyzzz *numbers*
+	return 0+ join '.', shift @parts, join '', @parts;
 }
 
 END
 {
+	return if $quiet;
 
 	# map "filename" to "filepath" for everything that was loaded
 	while ( my ( $filename, $filepath ) = each %INC ) {
@@ -128,6 +168,16 @@ END
 			$used{$filename}[0]{loaded} = delete $loaded{$filepath} || [];
 			$used{$filepath} = delete $used{$filename};
 		}
+	}
+
+	# load Module::CoreList if needed
+	if ($hide_core) {
+		local @INC = grep { $_ ne \&trace_use } @INC;
+		local %INC = %INC;    # don't report it loaded
+		require Module::CoreList;
+		warn sprintf "Module::CoreList %s doesn't know about Perl %s\n",
+			$Module::CoreList::VERSION, $hide_core
+			if !exists $Module::CoreList::version{$hide_core};
 	}
 
 	# output the diagnostic
@@ -197,6 +247,27 @@ a loaded module to the tree, it will be reported at the end.
 Even though using C<-MDevel::TraceUse> is possible, it is preferable to
 use C<-d:TraceUse>, as the debugger will provide more accurate information
 in the case of C<eval>.
+
+=head2 Parameters
+
+You can hide the core modules that your program used by providing the
+C<hidecore> argument:
+
+  $ B<perl -d:TraceUse=hidecore your_program.pl>
+
+This will not renumber the modules so the core module's positions will be
+visible as gaps in the numbering. In some cases evidence may also be visible of
+the core module's usage (e.g. a caller shown as L<base> or L<parent>).
+
+You may also specify the version of Perl for which you want to hide the core
+modules (the default is the running version):
+
+  B<-d:TraceUse=hidecore:5.8.1>
+
+The version string can be given as I<x.yyy.zzz> (dot-separated) or
+I<x.yyyzzz> (decimal). For example, the strings C<5.8.1>, C<5.08.01>,
+C<5.008.001> and C<5.008001> will all represent Perl version 5.8.1,
+and C<5.5.30>, C<5.005_03> will all represent Perl version 5.005_03.
 
 =head1 AUTHORS
 
