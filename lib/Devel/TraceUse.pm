@@ -6,7 +6,7 @@ sub DB {}
 
 package Devel::TraceUse;
 
-our $VERSION = '2.02';
+our $VERSION = '2.03';
 
 BEGIN
 {

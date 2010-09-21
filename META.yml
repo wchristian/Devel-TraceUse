@@ -1,7 +1,7 @@
 ---
 abstract: 'show the modules your program loads, recursively'
 author:
-  - 'chromatic <chromatic@wgz.org>'
+  - 'Philippe Bruhat (BooK) <book@cpan.org>'
 build_requires:
   Test::More: 0
 configure_requires:
@@ -18,8 +18,8 @@ no_index:
 provides:
   Devel::TraceUse:
     file: lib/Devel/TraceUse.pm
-    version: 2.02
+    version: 2.03
 resources:
   license: http://dev.perl.org/licenses/
   repository: http://github.com/book/Devel-TraceUse
-version: 2.02
+version: 2.03
