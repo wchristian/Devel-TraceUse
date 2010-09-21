@@ -215,7 +215,7 @@ sometimes you may wonder exactly which part of your program loads which module.
 C<Devel::TraceUse> can analyze a program to see which part used which module.
 I recommend using it from the command line:
 
-  $ B<perl -d:TraceUse your_program.pl>
+  $ perl -d:TraceUse your_program.pl
 
 This will display a tree of the modules ultimately used to run your program.
 (It also runs your program with only a little startup cost all the way through
@@ -253,7 +253,7 @@ in the case of C<eval>.
 You can hide the core modules that your program used by providing the
 C<hidecore> argument:
 
-  $ B<perl -d:TraceUse=hidecore your_program.pl>
+  $ perl -d:TraceUse=hidecore your_program.pl
 
 This will not renumber the modules so the core module's positions will be
 visible as gaps in the numbering. In some cases evidence may also be visible of
@@ -262,7 +262,7 @@ the core module's usage (e.g. a caller shown as L<base> or L<parent>).
 You may also specify the version of Perl for which you want to hide the core
 modules (the default is the running version):
 
-  B<-d:TraceUse=hidecore:5.8.1>
+  $ perl -d:TraceUse=hidecore:5.8.1 your_program.pl
 
 The version string can be given as I<x.yyy.zzz> (dot-separated) or
 I<x.yyyzzz> (decimal). For example, the strings C<5.8.1>, C<5.08.01>,
