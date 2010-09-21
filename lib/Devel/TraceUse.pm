@@ -275,6 +275,10 @@ chromatic, C<< <chromatic at wgz.org> >>
 
 Philippe Bruhat, C<< <book at cpan.org> >>
 
+=head2 Contributors
+
+C<hidecore> option contributed by David Leadbeater, C<< <dgl@dgl.cx> >>.
+
 =head1 BUGS
 
 Please report any bugs or feature requests to
@@ -313,11 +317,16 @@ L<http://search.cpan.org/dist/Devel-TraceUse>
 
 =back
 
-=head1 COPYRIGHT & LICENSE
+=head1 COPYRIGHT
 
 Copyright 2006 chromatic, most rights reserved.
 
 Copyright 2010 Philippe Bruhat (BooK), for the rewrite.
 
+=head1 LICENSE
+
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
+
+=cut
+
