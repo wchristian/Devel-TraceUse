@@ -151,11 +151,10 @@ sub show_trace
 sub numify {
 	my ($version) = @_;
 	$version =~ y/_//d;
-	my @parts = map { (length) < 3 ? sprintf "%03d", $_ : $_ }
-		split /\./, $version;
+	my @parts = split /\./, $version;
 
 	# %Module::CoreList::version's keys are x.yyyzzz *numbers*
-	return 0+ join '.', shift @parts, join '', @parts;
+	return 0+ ((shift @parts).'.'.join('', map { (length) < 3 ? (sprintf "%03d", $_) : $_ } @parts));
 }
 
 END
