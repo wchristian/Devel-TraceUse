@@ -1,5 +1,10 @@
 Revision history for Devel-TraceUse
 
+2.04 Sat Apr 16 13:57:19 CEST 2011
+    - use ${"$package\::VERSION"} instead of $package->VERSION to
+      avoid the validation in ->VERSION to choke on modules using
+      base.pm (RT #65284)
+
 2.03 Wed Sep 22 01:15:40 CEST 2010
     - The 'hidecore' option will hide core modules in the output
       (initial patch by David Leadbeater)
