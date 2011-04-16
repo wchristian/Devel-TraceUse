@@ -107,35 +107,43 @@ sub trace_use
 	return;
 }
 
-sub show_trace
+sub show_trace_visitor
 {
 	my ( $mod, $pos ) = @_;
+
+	my $caller = $mod->{caller};
+	my $message = sprintf( '%4s.', $mod->{rank} ) . '  ' x $pos;
+	$message .= "$mod->{module}";
+	my $version = ${"$mod->{module}\::VERSION"};
+	$message .= defined $version ? " $version," : ',';
+	$message .= " $caller->{filename}"
+		if defined $caller->{filename};
+	$message .= " line $caller->{line}"
+		if defined $caller->{line};
+	$message .= " $mod->{eval}"
+		if $mod->{eval};
+	$message .= " [$caller->{package}]"
+		if $caller->{package} ne $caller->{filepackage};
+	$message .= " (FAILED)"
+		if !exists $INC{$mod->{filename}};
+
+	warn "$message\n";
+}
+
+sub visit_trace
+{
+	my ( $visitor, $mod, $pos ) = @_;
 
 	my $hide = 0;
 
 	if ( ref $mod ) {
 		$mod = shift @$mod;
-		my $caller = $mod->{caller};
-		my $message = sprintf( '%4s.', $mod->{rank} ) . '  ' x $pos;
-		$message .= "$mod->{module}";
-		my $version = ${"$mod->{module}\::VERSION"};
-		$message .= defined $version ? " $version," : ',';
-		$message .= " $caller->{filename}"
-			if defined $caller->{filename};
-		$message .= " line $caller->{line}"
-			if defined $caller->{line};
-		$message .= " $mod->{eval}"
-			if $mod->{eval};
-		$message .= " [$caller->{package}]"
-			if $caller->{package} ne $caller->{filepackage};
-		$message .= " (FAILED)"
-			if !exists $INC{$mod->{filename}};
 
 		if($hide_core) {
 			$hide = exists $Module::CoreList::version{$hide_core}{$mod->{module}};
 		}
 
-		warn "$message\n" unless $hide;
+		$visitor->($mod, $pos) unless $hide;
 
 		$reported{$mod->{filename}}++;
 	}
@@ -143,7 +151,7 @@ sub show_trace
 		$mod = { loaded => delete $loaded{$mod} };
 	}
 
-	show_trace( $used{$_}, $hide ? $pos : $pos + 1 )
+	visit_trace( $visitor, $used{$_}, $hide ? $pos : $pos + 1 )
 		for map { $INC{$_} || $_ } @{ $mod->{loaded} };
 }
 
@@ -184,11 +192,11 @@ END
 
 	# output the diagnostic
 	warn "Modules used from $root:\n";
-	show_trace( $root, 0 );
+	visit_trace( \&show_trace_visitor, $root, 0 );
 
 	# anything left?
 	if (%loaded) {
-		show_trace( $_, 0 ) for sort keys %loaded;
+		visit_trace( \&show_trace_visitor, $_, 0 ) for sort keys %loaded;
 	}
 
 	# did we miss some modules?
