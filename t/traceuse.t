@@ -12,6 +12,8 @@ my $tlib  = File::Spec->catdir( 't', 'lib' );
 my $tlib2 = File::Spec->catdir( 't', 'lib2' );
 my $vlib  = defined $lib::VERSION ? " $lib::VERSION" : '';
 
+my $note =  "Use -d:TraceUse for more accurate information.\n";
+
 # all command lines prefixed with $^X -I"t/lib"
 my @tests = (
     [ << 'OUT', qw(-d:TraceUse -MParent -e1) ],
@@ -205,6 +207,9 @@ plan tests => scalar @tests;
 
 for my $test (@tests) {
     my ( $errput, @cmd ) = @$test;
+
+    # also expect the note about -d:TraceUse
+    $errput = $note . $errput if !grep /-d:TraceUse/, @cmd;
 
     # run the test subcommand
     local ( *IN, *OUT, *ERR );

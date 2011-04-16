@@ -169,6 +169,9 @@ END
 		}
 	}
 
+    # let people know more accurate information is available
+    warn "Use -d:TraceUse for more accurate information.\n" if !$^P;
+
 	# load Module::CoreList if needed
 	if ($hide_core) {
 		local @INC = grep { $_ ne \&trace_use } @INC;
@@ -244,8 +247,8 @@ In the very rare case when C<Devel::TraceUse> is not able to attach
 a loaded module to the tree, it will be reported at the end.
 
 Even though using C<-MDevel::TraceUse> is possible, it is preferable to
-use C<-d:TraceUse>, as the debugger will provide more accurate information
-in the case of C<eval>.
+use C<-d:TraceUse>, as the debugger will provide more accurate information.
+You will be reminded in the output.
 
 =head2 Parameters
 
