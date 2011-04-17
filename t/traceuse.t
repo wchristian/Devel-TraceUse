@@ -147,11 +147,11 @@ OUT
         [ << 'OUT', '-d:TraceUse=hidecore:5.006001', '-MConfig', '-e1' ],
 Modules used from -e:
 OUT
-        [ << "OUT", '-d:TraceUse=hidecore:4', '-e1' ],
+        if $] < 5.013010;
+    push @tests, [ << "OUT", '-d:TraceUse=hidecore:4', '-e1' ];
 Module::CoreList $Module::CoreList::VERSION doesn't know about Perl 4
 Modules used from -e:
 OUT
-        ;
 
     # does Module::CoreList know about this Perl?
     my $this_perl = Devel::TraceUse::numify($]);
@@ -168,7 +168,7 @@ OUT
 Modules used from -e:
    1.  Config, -e line 0 [main]
 OUT
-        if $Module::CoreList::VERSION >= 2;
+        if $Module::CoreList::VERSION >= 2 && $] < 5.013010;
 }
 else {
     diag "Module::CoreList not installed";
