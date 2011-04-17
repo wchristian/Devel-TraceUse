@@ -107,9 +107,14 @@ sub trace_use
 	return;
 }
 
+sub _show_trace_warn
+{
+	warn "$_[0]\n"
+}
+
 sub show_trace_visitor
 {
-	my ( $mod, $pos, @args ) = @_;
+	my ( $mod, $pos, $output_cb, @args ) = @_;
 
 	my $caller = $mod->{caller};
 	my $message = sprintf( '%4s.', $mod->{rank} ) . '  ' x $pos;
@@ -127,7 +132,7 @@ sub show_trace_visitor
 	$message .= " (FAILED)"
 		if !exists $INC{$mod->{filename}};
 
-	warn "$message\n";
+	$output_cb->($message, @args);
 }
 
 sub visit_trace
@@ -190,13 +195,15 @@ END
 			if !exists $Module::CoreList::version{$hide_core};
 	}
 
+	my $output = \&_show_trace_warn;
+
 	# output the diagnostic
 	warn "Modules used from $root:\n";
-	visit_trace( \&show_trace_visitor, $root, 0 );
+	visit_trace( \&show_trace_visitor, $root, 0, $output );
 
 	# anything left?
 	if (%loaded) {
-		visit_trace( \&show_trace_visitor, $_, 0 ) for sort keys %loaded;
+		visit_trace( \&show_trace_visitor, $_, 0, $output ) for sort keys %loaded;
 	}
 
 	# did we miss some modules?
