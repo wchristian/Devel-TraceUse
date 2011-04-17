@@ -20,6 +20,7 @@ my %loaded;
 my %reported;
 my $rank = 0;
 my $quiet = 1;
+my $output_file;
 
 # Hide core modules (for the specified version)?
 my $hide_core = 0;
@@ -34,6 +35,8 @@ sub import {
 	for(@_) {
 		if(/^hidecore(?::(.*))?/) {
 			$hide_core = numify( $1 ? $1 : $] );
+		} elsif (/^output:(.*)$/) {
+			$output_file = $1;
 		} else {
 			die "Unknown argument to $class: $_\n";
 		}
@@ -105,11 +108,6 @@ sub trace_use
 
 	# let Perl ultimately find the required file
 	return;
-}
-
-sub _show_trace_warn
-{
-	warn "$_[0]\n"
 }
 
 sub show_trace_visitor
@@ -195,10 +193,17 @@ END
 			if !exists $Module::CoreList::version{$hide_core};
 	}
 
-	my $output = \&_show_trace_warn;
+	my ($output, $output_fh);
+	if (defined $output_file) {
+		open $output_fh, '>', $output_file;
+		$output = sub { print $output_fh "$_[0]\n" };
+		# $output_fh will be closed at the end of the scope (END block)
+	} else {
+		$output = sub { warn "$_[0]\n" };
+	}
 
 	# output the diagnostic
-	warn "Modules used from $root:\n";
+	$output->("Modules used from $root:");
 	visit_trace( \&show_trace_visitor, $root, 0, $output );
 
 	# anything left?
@@ -212,8 +217,8 @@ END
 		keys %INC
 		)
 	{
-		warn "Modules used, but not reported:\n" if @missed;
-		warn "  $_\n" for @missed;
+		$output->("Modules used, but not reported:") if @missed;
+		$output->("  $_") for @missed;
 	}
 }
 
