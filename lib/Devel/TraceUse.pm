@@ -109,7 +109,7 @@ sub trace_use
 
 sub show_trace_visitor
 {
-	my ( $mod, $pos ) = @_;
+	my ( $mod, $pos, @args ) = @_;
 
 	my $caller = $mod->{caller};
 	my $message = sprintf( '%4s.', $mod->{rank} ) . '  ' x $pos;
@@ -132,7 +132,7 @@ sub show_trace_visitor
 
 sub visit_trace
 {
-	my ( $visitor, $mod, $pos ) = @_;
+	my ( $visitor, $mod, $pos, @args ) = @_;
 
 	my $hide = 0;
 
@@ -143,7 +143,7 @@ sub visit_trace
 			$hide = exists $Module::CoreList::version{$hide_core}{$mod->{module}};
 		}
 
-		$visitor->($mod, $pos) unless $hide;
+		$visitor->( $mod, $pos, @args ) unless $hide;
 
 		$reported{$mod->{filename}}++;
 	}
@@ -151,7 +151,7 @@ sub visit_trace
 		$mod = { loaded => delete $loaded{$mod} };
 	}
 
-	visit_trace( $visitor, $used{$_}, $hide ? $pos : $pos + 1 )
+	visit_trace( $visitor, $used{$_}, $hide ? $pos : $pos + 1, @args )
 		for map { $INC{$_} || $_ } @{ $mod->{loaded} };
 }
 
