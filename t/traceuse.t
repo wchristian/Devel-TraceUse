@@ -215,10 +215,16 @@ OUT
 plan tests => scalar @tests;
 
 for my $test (@tests) {
-    my ( $errput, @cmd ) = @$test;
+    run_test(@$test);
+}
+
+sub run_test {
+    my ( $expect, @cmd ) = @_;
 
     # also expect the note about -d:TraceUse
-    $errput = $note . $errput if !grep /-d:TraceUse/, @cmd;
+    my $errput = '';
+    $errput .= $note unless grep /-d:TraceUse/, @cmd;
+    $errput .= $expect;
 
     # run the test subcommand
     local ( *IN, *OUT, *ERR );
