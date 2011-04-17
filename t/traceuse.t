@@ -6,6 +6,7 @@ use Test::More;
 use IPC::Open3;
 use File::Spec;
 use Config;
+use Devel::TraceUse ();
 use lib ();
 
 my $tlib  = File::Spec->catdir( 't', 'lib' );
@@ -139,9 +140,7 @@ if ( eval { require Module::CoreList; 1; } ) {
     diag "Module::CoreList $Module::CoreList::VERSION installed";
 
     # Module::CoreList always knew about those
-    push @tests, [ << 'OUT', '-d:TraceUse=hidecore', '-Mstrict', '-e1' ],
-Modules used from -e:
-OUT
+    push @tests,
         [ << 'OUT', '-d:TraceUse=hidecore:5.5.30', '-MConfig', '-e1' ],
 Modules used from -e:
 OUT
@@ -153,6 +152,16 @@ Module::CoreList $Module::CoreList::VERSION doesn't know about Perl 4
 Modules used from -e:
 OUT
         ;
+
+    # does Module::CoreList know about this Perl?
+    my $this_perl = Devel::TraceUse::numify($]);
+    my $note
+        = !exists $Module::CoreList::version{$this_perl}
+        ? "Module::CoreList $Module::CoreList::VERSION doesn't know about Perl $this_perl\n"
+        : '';
+    push @tests, [ << "OUT", '-d:TraceUse=hidecore', '-Mstrict', '-e1' ];
+${note}Modules used from -e:
+OUT
 
     # Module::CoreList didn't know about 5.001 until its version 2.00
     push @tests, [ << 'OUT', '-d:TraceUse=hidecore:5.1', '-MConfig', '-e1' ],
