@@ -1,5 +1,10 @@
 Revision history for Devel-TraceUse
 
+2.05
+    - new 'output' option to redirect TraceUse result to a file
+      (fully implemented by Olivier Mengué (DOLMEN) at the Perl QA
+      Hackathon 2011)
+
 2.04 Sat Apr 16 13:57:19 CEST 2011
     - use ${"$package\::VERSION"} instead of $package->VERSION to
       avoid the validation in ->VERSION to choke on modules using
