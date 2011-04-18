@@ -220,6 +220,7 @@ OUT
 my @outputs = (
     undef,
     'out.txt',
+    File::Spec->rel2abs('out.txt'),
 );
 
 plan tests => (scalar(@outputs) * scalar(@tests));
