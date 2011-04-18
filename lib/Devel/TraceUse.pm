@@ -269,8 +269,14 @@ You will be reminded in the output.
 
 =head2 Parameters
 
-You can hide the core modules that your program used by providing the
-C<hidecore> argument:
+You can hide the core modules that your program used by providing parameters
+at C<use> time:
+
+  $ perl -d:TraceUse[=<option1>:<value1>[,<option2>:<value2>[...]]]
+
+=over 4
+
+=item C<hidecore>
 
   $ perl -d:TraceUse=hidecore your_program.pl
 
@@ -287,6 +293,20 @@ The version string can be given as I<x.yyy.zzz> (dot-separated) or
 I<x.yyyzzz> (decimal). For example, the strings C<5.8.1>, C<5.08.01>,
 C<5.008.001> and C<5.008001> will all represent Perl version 5.8.1,
 and C<5.5.30>, C<5.005_03> will all represent Perl version 5.005_03.
+
+=item C<output>
+
+  $ perl -d:TraceUse=output=out.txt your_program.pl
+
+This will output the TraceUse result to the given file instead of warn.
+
+Note that TraceUse warnings will still be output as warnings.
+
+The output file is opened at initialization time, so there should be no
+surprise in relative path interpretation even if your program changes
+the current directory.
+
+=back
 
 =head1 AUTHORS
 
