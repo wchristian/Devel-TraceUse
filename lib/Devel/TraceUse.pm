@@ -318,6 +318,8 @@ Philippe Bruhat, C<< <book at cpan.org> >>
 
 C<hidecore> option contributed by David Leadbeater, C<< <dgl@dgl.cx> >>.
 
+C<output> option contributed by Olivier MenguE<eacute>, C<< <dolmen@cpan.org> >>.
+
 =head1 BUGS
 
 Please report any bugs or feature requests to
