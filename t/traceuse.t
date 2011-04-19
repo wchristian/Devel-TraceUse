@@ -265,7 +265,7 @@ sub run_test {
             diag qq(Missing expected output file "$output_file");
             return;
         }
-        open my $f, '<:utf8', $output_file;
+        open my $f, '<', $output_file;
         @out = map { s/[\015\012]*$//; $_ } <$f>;
         close $f;
         unlink $f;
