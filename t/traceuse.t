@@ -287,7 +287,7 @@ sub run_test {
         if $Config{usesitecustomize};
 
     # clean up the "Can't locate" error message
-    $errput[0] =~ s/\(\@INC contains: .*/(\@INC contains: <DELETED>)/ if @errput;
+    s/\(\@INC contains: .*/(\@INC contains: <DELETED>)/ for @errput;
 
     push @errput, @out;
 
