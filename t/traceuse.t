@@ -163,12 +163,16 @@ OUT
 Modules used from -e:
 OUT
 
+    # convert Module::CoreList devel version numbers to a number
+    my $corelist_version = '2.49_01';#$Module::CoreList::VERSION;
+    $corelist_version =~ tr/_//d;
+
     # Module::CoreList didn't know about 5.001 until its version 2.00
     push @tests, [ << 'OUT', '-d:TraceUse=hidecore:5.1', '-MConfig', '-e1' ],
 Modules used from -e:
    1.  Config, -e line 0 [main]
 OUT
-        if $Module::CoreList::VERSION >= 2 && $] < 5.013010;
+        if $corelist_version >= 2 && $] < 5.013010;
 }
 else {
     diag "Module::CoreList not installed";
