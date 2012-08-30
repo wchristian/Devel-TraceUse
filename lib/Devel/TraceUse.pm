@@ -231,6 +231,8 @@ END { dump_result() }
 1;
 __END__
 
+=encoding iso-8859-1
+
 =head1 NAME
 
 Devel::TraceUse - show the modules your program loads, recursively
@@ -332,9 +334,9 @@ Philippe Bruhat, C<< <book at cpan.org> >>
 
 C<hidecore> option contributed by David Leadbeater, C<< <dgl@dgl.cx> >>.
 
-C<output> option contributed by Olivier MenguE<eacute> (L<DOLMEN|mailto:dolmen@cpan.org>).
+C<output> option contributed by Olivier Mengué (C<< <dolmen@cpan.org> >>).
 
-C<perl -c> support contributed by Olivier MenguE<eacute> (L<DOLMEN|mailto:dolmen@cpan.org>).
+C<perl -c> support contributed by Olivier Mengué (C<< <dolmen@cpan.org> >>).
 
 =head1 BUGS
 
@@ -378,7 +380,7 @@ L<http://search.cpan.org/dist/Devel-TraceUse>
 
 Copyright 2006 chromatic, most rights reserved.
 
-Copyright 2010 Philippe Bruhat (BooK), for the rewrite.
+Copyright 2010-2012 Philippe Bruhat (BooK), for the rewrite.
 
 =head1 LICENSE
 
