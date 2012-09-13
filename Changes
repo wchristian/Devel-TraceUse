@@ -1,5 +1,8 @@
 Revision history for Devel-TraceUse
 
+2.08 Thu Sep 13 2012
+    - fixed the module's encoding to match the =encoding POD directive
+
 2.07 Thu Sep 13 2012
     - Added support for "perl -c": dump tree at CHECK phase if -c is set
       (contributed by Olivier Mengué (DOLMEN))
