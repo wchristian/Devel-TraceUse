@@ -334,9 +334,9 @@ Philippe Bruhat, C<< <book at cpan.org> >>
 
 C<hidecore> option contributed by David Leadbeater, C<< <dgl@dgl.cx> >>.
 
-C<output> option contributed by Olivier MenguÃ© (C<< <dolmen@cpan.org> >>).
+C<output> option contributed by Olivier Mengué (C<< <dolmen@cpan.org> >>).
 
-C<perl -c> support contributed by Olivier MenguÃ© (C<< <dolmen@cpan.org> >>).
+C<perl -c> support contributed by Olivier Mengué (C<< <dolmen@cpan.org> >>).
 
 =head1 BUGS
 
