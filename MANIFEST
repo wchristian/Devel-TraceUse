@@ -25,3 +25,4 @@ t/numify.t
 t/traceuse.t
 xt/pod-coverage.t
 xt/pod.t
+META.json

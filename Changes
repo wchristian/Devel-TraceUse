@@ -1,5 +1,9 @@
 Revision history for Devel-TraceUse
 
+2.07 Thu Sep 13 2012
+    - Added support for "perl -c": dump tree at CHECK phase if -c is set
+      (contributed by Olivier Mengué (DOLMEN))
+
 2.06 Sun Jan 15 00:44:13 CET 2012
     No code change, but:
     - More thoroughly remove @INC from the error output
