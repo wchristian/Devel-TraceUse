@@ -131,6 +131,13 @@ Modules used from -e:
    9.    M11 1.01, M10.pm line 3 [M8]
   10.    M12 1.12, M10.pm line 4 [M8]
 OUT
+    [ << 'OUT', qw(-d:TraceUse -c -MM1 -e), 'require M4' ],
+Modules used from -e:
+   1.  M1, -e line 0 [main]
+   2.    M2, M1.pm line 3
+   3.      M3, M2.pm line 3
+-e syntax OK
+OUT
 );
 
 # Module::CoreList-related tests
@@ -294,6 +301,12 @@ sub run_test {
     s/\(\@INC contains: .*/(\@INC contains: <DELETED>)/ for @errput;
 
     push @errput, @out;
+
+    # make sure the 'syntax OK' is at the end
+    if ( grep $_ eq '-c', @cmd ) {
+        @errput = sort { $a =~ /syntax OK/ ? 1 : $b =~ /syntax OK/ ? -1 : 0 }
+            @errput;
+    }
 
     # remove version number of core modules used in testing
     s/(strict )[^,]+,/$1%%%,/g for @errput;
