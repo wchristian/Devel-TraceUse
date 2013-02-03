@@ -24,6 +24,8 @@ my $output_fh;
 
 # Hide core modules (for the specified version)?
 my $hide_core = 0;
+# Report proxies
+my $report_proxies = 0;
 
 sub import {
 	my $class = shift;
@@ -37,6 +39,8 @@ sub import {
 			$hide_core = numify( $1 ? $1 : $] );
 		} elsif (/^output:(.*)$/) {
 			open $output_fh, '>', $1 or die "can't open $1: $!";
+		} elsif (/^reportprox(?:ys?|ies)(?::(0|1))?$/s) {
+			$report_proxies = defined($1) ? $1 : 1;
 		} else {
 			die "Unknown argument to $class: $_\n";
 		}
@@ -110,6 +114,8 @@ sub trace_use
 	return;
 }
 
+my %loaders;
+
 sub show_trace_visitor
 {
 	my ( $mod, $pos, $output_cb, @args ) = @_;
@@ -129,6 +135,10 @@ sub show_trace_visitor
 		if $caller->{package} ne $caller->{filepackage};
 	$message .= " (FAILED)"
 		if !exists $INC{$mod->{filename}};
+
+	if ($report_proxies && $caller->{filename} && $caller->{line}) {
+		$loaders{$caller->{filename}.' '.$caller->{line}}++;
+	}
 
 	$output_cb->($message, @args);
 }
@@ -166,6 +176,43 @@ sub numify {
 
 	# %Module::CoreList::version's keys are x.yyyzzz *numbers*
 	return 0+ ((shift @parts).'.'.join('', map { (length) < 3 ? (sprintf "%03d", $_) : $_ } @parts));
+}
+
+sub dump_proxies
+{
+	my $output = shift;
+
+	my @hot_loaders =
+		sort { $loaders{$b} <=> $loaders{$a} }
+		grep { $loaders{$_} > 1 }
+		keys %loaders;
+
+	return unless @hot_loaders;
+
+	$output->("Proxies:");
+
+	for my $loader (@hot_loaders) {
+		my $sub;
+		my ($filename, $linenum) = split / /, $loader;
+		for my $dir (@INC) {
+			if (-e "$dir/$filename") {
+				open my $src, '<', "$dir/$filename";
+				my $s;
+				while (<$src>) {
+					$s = $1 if /^sub (\w+)/;
+					if ($. == $linenum) {
+						$sub = $s;
+						last
+					}
+				}
+				last
+			}
+		}
+		$output->(sprintf("%4d %s line %d%s",
+				$loaders{$loader},
+				$filename, $linenum,
+					(defined($sub) ? ", sub $sub" : '')));
+	}
 }
 
 sub dump_result
@@ -215,6 +262,8 @@ sub dump_result
 		$output->("Modules used, but not reported:") if @missed;
 		$output->("  $_") for @missed;
 	}
+
+	dump_proxies($output) if $report_proxies;
 
 	close $output_fh if defined $output_fh;
 }
@@ -321,6 +370,24 @@ Note that TraceUse warnings will still be output as warnings.
 The output file is opened at initialization time, so there should be no
 surprise in relative path interpretation even if your program changes
 the current directory.
+
+=item C<reportproxies>
+
+If a particular line of code is used at least 2 times to load modules, it is
+considered as a "module loading proxy sub", or just "proxy". This option lists
+such occurences.
+C<L<base>::import>, C<L<parent>::import>,
+C<L<Module::Runtime>::require_module> are such subs, among others.
+If proxies are found, the list is reported like this:
+
+     <occurences> <filename> line <line>[, sub <subname>]
+
+Example:
+
+    Proxies:
+      59 Module/Runtime.pm, line 317, sub require_module
+      13 base.pm line 90, sub import
+       3 Module/Pluggable/Object.pm line 311, sub _require
 
 =back
 
