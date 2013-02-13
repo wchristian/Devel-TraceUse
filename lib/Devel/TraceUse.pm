@@ -15,12 +15,12 @@ BEGIN
 
 # initialize the tree of require calls
 my $root = (caller)[1];
-my %used;
-my %loaded;
-my %reported;
-my $rank = 0;
-my $quiet = 1;
-my $output_fh;
+my %used;        # track loaded modules by "filename" (parameter to require)
+my %loaded;      # track "filename"s loaded  by "filepath" (value from %INC)
+my %reported;    # track reported "filename"
+my $rank  = 0;   # record the loading order of modules
+my $quiet = 1;   # no output until decided otherwise
+my $output_fh;   # optional write filehandle where results will be output
 
 # Hide core modules (for the specified version)?
 my $hide_core = 0;
