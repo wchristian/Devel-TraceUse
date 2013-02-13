@@ -165,7 +165,7 @@ sub numify {
 	my @parts = split /\./, $version;
 
 	# %Module::CoreList::version's keys are x.yyyzzz *numbers*
-	return 0+ ((shift @parts).'.'.join('', map { (length) < 3 ? (sprintf "%03d", $_) : $_ } @parts));
+	return 0+ join '', shift @parts, '.', map sprintf( '%03s', $_ ), @parts;
 }
 
 sub dump_result
