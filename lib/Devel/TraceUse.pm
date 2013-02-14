@@ -24,8 +24,6 @@ my $output_fh;
 
 # Hide core modules (for the specified version)?
 my $hide_core = 0;
-# Report proxies
-my $report_proxies = 0;
 
 sub import {
 	my $class = shift;
@@ -39,8 +37,6 @@ sub import {
 			$hide_core = numify( $1 ? $1 : $] );
 		} elsif (/^output:(.*)$/) {
 			open $output_fh, '>', $1 or die "can't open $1: $!";
-		} elsif (/^reportprox(?:ys?|ies)(?::(0|1))?$/s) {
-			$report_proxies = defined($1) ? $1 : 1;
 		} else {
 			die "Unknown argument to $class: $_\n";
 		}
@@ -136,7 +132,7 @@ sub show_trace_visitor
 	$message .= " (FAILED)"
 		if !exists $INC{$mod->{filename}};
 
-	if ($report_proxies && $caller->{filename} && $caller->{line}) {
+	if ($caller->{filename} && $caller->{line}) {
 		$loaders{$caller->{filename}.' '.$caller->{line}}++;
 	}
 
@@ -189,7 +185,7 @@ sub dump_proxies
 
 	return unless @hot_loaders;
 
-	$output->("Proxies:");
+	$output->("Possible proxies:");
 
 	for my $loader (@hot_loaders) {
 		my $sub;
@@ -263,7 +259,7 @@ sub dump_result
 		$output->("  $_") for @missed;
 	}
 
-	dump_proxies($output) if $report_proxies;
+	dump_proxies($output);
 
 	close $output_fh if defined $output_fh;
 }
@@ -323,6 +319,21 @@ under the modules that tried to load them.
 In the very rare case when C<Devel::TraceUse> is not able to attach
 a loaded module to the tree, it will be reported at the end.
 
+If a particular line of code is used at least 2 times to load modules,
+it is considered as part of a "module loading proxy subroutine", or just "proxy".
+C<L<base>::import>, C<L<parent>::import>,
+C<L<Module::Runtime>::require_module> are such subroutines, among others.
+If proxies are found, the list is reported like this:
+
+     <occurences> <filename> line <line>[, sub <subname>]
+
+Example:
+
+    Possible proxies:
+      59 Module/Runtime.pm, line 317, sub require_module
+      13 base.pm line 90, sub import
+       3 Module/Pluggable/Object.pm line 311, sub _require
+
 Even though using C<-MDevel::TraceUse> is possible, it is preferable to
 use C<-d:TraceUse>, as the debugger will provide more accurate information.
 You will be reminded in the output.
@@ -370,24 +381,6 @@ Note that TraceUse warnings will still be output as warnings.
 The output file is opened at initialization time, so there should be no
 surprise in relative path interpretation even if your program changes
 the current directory.
-
-=item C<reportproxies>
-
-If a particular line of code is used at least 2 times to load modules, it is
-considered as a "module loading proxy sub", or just "proxy". This option lists
-such occurences.
-C<L<base>::import>, C<L<parent>::import>,
-C<L<Module::Runtime>::require_module> are such subs, among others.
-If proxies are found, the list is reported like this:
-
-     <occurences> <filename> line <line>[, sub <subname>]
-
-Example:
-
-    Proxies:
-      59 Module/Runtime.pm, line 317, sub require_module
-      13 base.pm line 90, sub import
-       3 Module/Pluggable/Object.pm line 311, sub _require
 
 =back
 
