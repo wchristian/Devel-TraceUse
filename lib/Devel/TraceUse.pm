@@ -387,6 +387,9 @@ C<output> option contributed by Olivier Mengué (C<< <dolmen@cpan.org> >>).
 
 C<perl -c> support contributed by Olivier Mengué (C<< <dolmen@cpan.org> >>).
 
+Proxy detection owes a lot to Olivier Mengué (C<< <dolmen@cpan.org> >>),
+who submitted several patches and discussed the topic with me on IRC.
+
 =head1 BUGS
 
 Please report any bugs or feature requests to
