@@ -375,9 +375,9 @@ the current directory.
 
 =head1 AUTHORS
 
-chromatic, C<< <chromatic at wgz.org> >>
+chromatic, C<< <chromatic@wgz.org> >>
 
-Philippe Bruhat, C<< <book at cpan.org> >>
+Philippe Bruhat, C<< <book@cpan.org> >>
 
 =head2 Contributors
 
