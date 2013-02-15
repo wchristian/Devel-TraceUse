@@ -18,6 +18,7 @@ my $root = (caller)[1];
 my %used;
 my %loaded;
 my %reported;
+my %loader;
 my $rank = 0;
 my $quiet = 1;
 my $output_fh;
@@ -106,11 +107,18 @@ sub trace_use
 	# record who tried to load us
 	push @{ $loaded{ $caller->{filepath} } }, $info->{filename};
 
+    # record potential proxies
+    if ( $caller->{filename} ) {
+        my($subroutine, $level);
+        while ( $subroutine = ( caller ++$level )[3] ) {
+            last if $subroutine =~ /::/;
+        }
+        $loader{ join "\0", @{$caller}{qw( filename line )}, $subroutine }++;
+    }
+
 	# let Perl ultimately find the required file
 	return;
 }
-
-my %loaders;
 
 sub show_trace_visitor
 {
@@ -131,10 +139,6 @@ sub show_trace_visitor
 		if $caller->{package} ne $caller->{filepackage};
 	$message .= " (FAILED)"
 		if !exists $INC{$mod->{filename}};
-
-	if ($caller->{filename} && $caller->{line}) {
-		$loaders{$caller->{filename}.' '.$caller->{line}}++;
-	}
 
 	$output_cb->($message, @args);
 }
@@ -179,35 +183,20 @@ sub dump_proxies
 	my $output = shift;
 
 	my @hot_loaders =
-		sort { $loaders{$b} <=> $loaders{$a} }
-		grep { $loaders{$_} > 1 }
-		keys %loaders;
+		sort { $loader{$b} <=> $loader{$a} }
+		grep { $loader{$_} > 1 }
+		keys %loader;
 
 	return unless @hot_loaders;
 
 	$output->("Possible proxies:");
 
 	for my $loader (@hot_loaders) {
-		my $sub;
-		my ($filename, $linenum) = split / /, $loader;
-		for my $dir (@INC) {
-			if (-e "$dir/$filename") {
-				open my $src, '<', "$dir/$filename";
-				my $s;
-				while (<$src>) {
-					$s = $1 if /^sub (\w+)/;
-					if ($. == $linenum) {
-						$sub = $s;
-						last
-					}
-				}
-				last
-			}
-		}
+        my ( $filename, $line, $subroutine ) = split /\0/, $loader;
 		$output->(sprintf("%4d %s line %d%s",
-				$loaders{$loader},
-				$filename, $linenum,
-					(defined($sub) ? ", sub $sub" : '')));
+				$loader{$loader},
+				$filename, $line,
+					(defined($subroutine) ? ", sub $subroutine" : '')));
 	}
 }
 
