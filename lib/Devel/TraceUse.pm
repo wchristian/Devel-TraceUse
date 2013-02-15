@@ -10,7 +10,7 @@ our $VERSION = '2.08';
 
 BEGIN
 {
-	unshift @INC, \&trace_use unless grep { "$_" eq \&trace_use . '' } @INC;
+    unshift @INC, \&trace_use unless grep { "$_" eq \&trace_use . '' } @INC;
 }
 
 # initialize the tree of require calls
@@ -27,25 +27,25 @@ my $output_fh;   # optional write filehandle where results will be output
 my $hide_core = 0;
 
 sub import {
-	my $class = shift;
+    my $class = shift;
 
-	# ensure "use Devel::TraceUse ();" will produce no output
-	$quiet = 0;
+    # ensure "use Devel::TraceUse ();" will produce no output
+    $quiet = 0;
 
-	# process options
-	for(@_) {
-		if(/^hidecore(?::(.*))?/) {
-			$hide_core = numify( $1 ? $1 : $] );
-		} elsif (/^output:(.*)$/) {
-			open $output_fh, '>', $1 or die "can't open $1: $!";
-		} else {
-			die "Unknown argument to $class: $_\n";
-		}
-	}
+    # process options
+    for(@_) {
+        if(/^hidecore(?::(.*))?/) {
+            $hide_core = numify( $1 ? $1 : $] );
+        } elsif (/^output:(.*)$/) {
+            open $output_fh, '>', $1 or die "can't open $1: $!";
+        } else {
+            die "Unknown argument to $class: $_\n";
+        }
+    }
 }
 
 my @caller_info = qw( package filepath line subroutine hasargs
-	wantarray evaltext is_require hints bitmask hinthash );
+    wantarray evaltext is_require hints bitmask hinthash );
 
 # Keys used in the data structure:
 # - filename: parameter given to use/require
@@ -58,54 +58,54 @@ my @caller_info = qw( package filepath line subroutine hasargs
 
 sub trace_use
 {
-	my ( $code, $filename ) = @_;
+    my ( $code, $filename ) = @_;
 
-	# ensure our hook remains first in @INC
-	@INC = ( $code, grep { $_ ne $code } @INC )
-		if $INC[0] ne $code;
+    # ensure our hook remains first in @INC
+    @INC = ( $code, grep { $_ ne $code } @INC )
+        if $INC[0] ne $code;
 
-	# $filename may be an actual filename, e.g. with do()
-	# try to compute a module name from it
-	my $module = $filename;
-	$module =~ s{/}{::}g
-		if $module =~ s/\.pm$//;
+    # $filename may be an actual filename, e.g. with do()
+    # try to compute a module name from it
+    my $module = $filename;
+    $module =~ s{/}{::}g
+        if $module =~ s/\.pm$//;
 
-	# info about the module being loaded
-	push @{ $used{$filename} }, my $info = {
-		filename => $filename,
-		module   => $module,
-		rank     => ++$rank,
-		eval     => '',
-	};
+    # info about the module being loaded
+    push @{ $used{$filename} }, my $info = {
+        filename => $filename,
+        module   => $module,
+        rank     => ++$rank,
+        eval     => '',
+    };
 
-	# info about the loading module
-	my $caller = $info->{caller} = {};
-	@{$caller}{@caller_info} = caller(0);
+    # info about the loading module
+    my $caller = $info->{caller} = {};
+    @{$caller}{@caller_info} = caller(0);
 
-	# try to compute a "filename" (as received by require)
-	$caller->{filestring} = $caller->{filename} = $caller->{filepath};
+    # try to compute a "filename" (as received by require)
+    $caller->{filestring} = $caller->{filename} = $caller->{filepath};
 
-	# some values seen in the wild:
-	# - "(eval $num)[$path:$line]" (debugger)
-	# - "$filename (autosplit into $path)" (AutoLoader)
-	if ( $caller->{filename} =~ /^(\(eval \d+\))(?:\[(.*):(\d+)\])?$/ ) {
-		$info->{eval}       = $1;
-		$caller->{filename} = $caller->{filepath} = $2;
-		$caller->{line}     = $3;
-	}
+    # some values seen in the wild:
+    # - "(eval $num)[$path:$line]" (debugger)
+    # - "$filename (autosplit into $path)" (AutoLoader)
+    if ( $caller->{filename} =~ /^(\(eval \d+\))(?:\[(.*):(\d+)\])?$/ ) {
+        $info->{eval}       = $1;
+        $caller->{filename} = $caller->{filepath} = $2;
+        $caller->{line}     = $3;
+    }
 
-	# clean up path
-	$caller->{filename}
-		=~ s{^(?:@{[ join '|', map quotemeta, reverse sort @INC]})/?}{};
+    # clean up path
+    $caller->{filename}
+        =~ s{^(?:@{[ join '|', map quotemeta, reverse sort @INC]})/?}{};
 
-	# try to compute the package associated with the file
-	$caller->{filepackage} = $caller->{filename};
-	$caller->{filepackage} =~ s/\.(pm|al)\s.*$/.$1/;
-	$caller->{filepackage} =~ s{/}{::}g
-		if $caller->{filepackage} =~ s/\.pm$//;
+    # try to compute the package associated with the file
+    $caller->{filepackage} = $caller->{filename};
+    $caller->{filepackage} =~ s/\.(pm|al)\s.*$/.$1/;
+    $caller->{filepackage} =~ s{/}{::}g
+        if $caller->{filepackage} =~ s/\.pm$//;
 
-	# record who tried to load us
-	push @{ $loaded{ $caller->{filepath} } }, $info->{filename};
+    # record who tried to load us
+    push @{ $loaded{ $caller->{filepath} } }, $info->{filename};
 
     # record potential proxies
     if ( $caller->{filename} ) {
@@ -116,141 +116,141 @@ sub trace_use
         $loader{ join "\0", @{$caller}{qw( filename line )}, $subroutine }++;
     }
 
-	# let Perl ultimately find the required file
-	return;
+    # let Perl ultimately find the required file
+    return;
 }
 
 sub show_trace_visitor
 {
-	my ( $mod, $pos, $output_cb, @args ) = @_;
+    my ( $mod, $pos, $output_cb, @args ) = @_;
 
-	my $caller = $mod->{caller};
-	my $message = sprintf( '%4s.', $mod->{rank} ) . '  ' x $pos;
-	$message .= "$mod->{module}";
-	my $version = ${"$mod->{module}\::VERSION"};
-	$message .= defined $version ? " $version," : ',';
-	$message .= " $caller->{filename}"
-		if defined $caller->{filename};
-	$message .= " line $caller->{line}"
-		if defined $caller->{line};
-	$message .= " $mod->{eval}"
-		if $mod->{eval};
-	$message .= " [$caller->{package}]"
-		if $caller->{package} ne $caller->{filepackage};
-	$message .= " (FAILED)"
-		if !exists $INC{$mod->{filename}};
+    my $caller = $mod->{caller};
+    my $message = sprintf( '%4s.', $mod->{rank} ) . '  ' x $pos;
+    $message .= "$mod->{module}";
+    my $version = ${"$mod->{module}\::VERSION"};
+    $message .= defined $version ? " $version," : ',';
+    $message .= " $caller->{filename}"
+        if defined $caller->{filename};
+    $message .= " line $caller->{line}"
+        if defined $caller->{line};
+    $message .= " $mod->{eval}"
+        if $mod->{eval};
+    $message .= " [$caller->{package}]"
+        if $caller->{package} ne $caller->{filepackage};
+    $message .= " (FAILED)"
+        if !exists $INC{$mod->{filename}};
 
-	$output_cb->($message, @args);
+    $output_cb->($message, @args);
 }
 
 sub visit_trace
 {
-	my ( $visitor, $mod, $pos, @args ) = @_;
+    my ( $visitor, $mod, $pos, @args ) = @_;
 
-	my $hide = 0;
+    my $hide = 0;
 
-	if ( ref $mod ) {
-		$mod = shift @$mod;
+    if ( ref $mod ) {
+        $mod = shift @$mod;
 
-		if($hide_core) {
-			$hide = exists $Module::CoreList::version{$hide_core}{$mod->{module}};
-		}
+        if($hide_core) {
+            $hide = exists $Module::CoreList::version{$hide_core}{$mod->{module}};
+        }
 
-		$visitor->( $mod, $pos, @args ) unless $hide;
+        $visitor->( $mod, $pos, @args ) unless $hide;
 
-		$reported{$mod->{filename}}++;
-	}
-	else {
-		$mod = { loaded => delete $loaded{$mod} };
-	}
+        $reported{$mod->{filename}}++;
+    }
+    else {
+        $mod = { loaded => delete $loaded{$mod} };
+    }
 
-	visit_trace( $visitor, $used{$_}, $hide ? $pos : $pos + 1, @args )
-		for map { $INC{$_} || $_ } @{ $mod->{loaded} };
+    visit_trace( $visitor, $used{$_}, $hide ? $pos : $pos + 1, @args )
+        for map { $INC{$_} || $_ } @{ $mod->{loaded} };
 }
 
 # we don't want to use version.pm on old Perls
 sub numify {
-	my ($version) = @_;
-	$version =~ y/_//d;
-	my @parts = split /\./, $version;
+    my ($version) = @_;
+    $version =~ y/_//d;
+    my @parts = split /\./, $version;
 
-	# %Module::CoreList::version's keys are x.yyyzzz *numbers*
-	return 0+ join '', shift @parts, '.', map sprintf( '%03s', $_ ), @parts;
+    # %Module::CoreList::version's keys are x.yyyzzz *numbers*
+    return 0+ join '', shift @parts, '.', map sprintf( '%03s', $_ ), @parts;
 }
 
 sub dump_proxies
 {
-	my $output = shift;
+    my $output = shift;
 
-	my @hot_loaders =
-		sort { $loader{$b} <=> $loader{$a} }
-		grep { $loader{$_} > 1 }
-		keys %loader;
+    my @hot_loaders =
+        sort { $loader{$b} <=> $loader{$a} }
+        grep { $loader{$_} > 1 }
+        keys %loader;
 
-	return unless @hot_loaders;
+    return unless @hot_loaders;
 
-	$output->("Possible proxies:");
+    $output->("Possible proxies:");
 
-	for my $loader (@hot_loaders) {
+    for my $loader (@hot_loaders) {
         my ( $filename, $line, $subroutine ) = split /\0/, $loader;
-		$output->(sprintf("%4d %s line %d%s",
-				$loader{$loader},
-				$filename, $line,
-					(defined($subroutine) ? ", sub $subroutine" : '')));
-	}
+        $output->(sprintf("%4d %s line %d%s",
+                $loader{$loader},
+                $filename, $line,
+                    (defined($subroutine) ? ", sub $subroutine" : '')));
+    }
 }
 
 sub dump_result
 {
-	return if $quiet;
+    return if $quiet;
 
-	# map "filename" to "filepath" for everything that was loaded
-	while ( my ( $filename, $filepath ) = each %INC ) {
-		if ( exists $used{$filename} ) {
-			$used{$filename}[0]{loaded} = delete $loaded{$filepath} || [];
-			$used{$filepath} = delete $used{$filename};
-		}
-	}
+    # map "filename" to "filepath" for everything that was loaded
+    while ( my ( $filename, $filepath ) = each %INC ) {
+        if ( exists $used{$filename} ) {
+            $used{$filename}[0]{loaded} = delete $loaded{$filepath} || [];
+            $used{$filepath} = delete $used{$filename};
+        }
+    }
 
     # let people know more accurate information is available
     warn "Use -d:TraceUse for more accurate information.\n" if !$^P;
 
-	# load Module::CoreList if needed
-	if ($hide_core) {
-		local @INC = grep { $_ ne \&trace_use } @INC;
-		local %INC = %INC;    # don't report it loaded
-		require Module::CoreList;
-		warn sprintf "Module::CoreList %s doesn't know about Perl %s\n",
-			$Module::CoreList::VERSION, $hide_core
-			if !exists $Module::CoreList::version{$hide_core};
-	}
+    # load Module::CoreList if needed
+    if ($hide_core) {
+        local @INC = grep { $_ ne \&trace_use } @INC;
+        local %INC = %INC;    # don't report it loaded
+        require Module::CoreList;
+        warn sprintf "Module::CoreList %s doesn't know about Perl %s\n",
+            $Module::CoreList::VERSION, $hide_core
+            if !exists $Module::CoreList::version{$hide_core};
+    }
 
-	my $output = defined $output_fh
-		   ? sub { print $output_fh "$_[0]\n" }
-		   : sub { warn "$_[0]\n" };
+    my $output = defined $output_fh
+           ? sub { print $output_fh "$_[0]\n" }
+           : sub { warn "$_[0]\n" };
 
-	# output the diagnostic
-	$output->("Modules used from $root:");
-	visit_trace( \&show_trace_visitor, $root, 0, $output );
+    # output the diagnostic
+    $output->("Modules used from $root:");
+    visit_trace( \&show_trace_visitor, $root, 0, $output );
 
-	# anything left?
-	if (%loaded) {
-		visit_trace( \&show_trace_visitor, $_, 0, $output ) for sort keys %loaded;
-	}
+    # anything left?
+    if (%loaded) {
+        visit_trace( \&show_trace_visitor, $_, 0, $output ) for sort keys %loaded;
+    }
 
-	# did we miss some modules?
-	if (my @missed
-		= sort grep { !exists $reported{$_} && $_ ne 'Devel/TraceUse.pm' }
-		keys %INC
-		)
-	{
-		$output->("Modules used, but not reported:") if @missed;
-		$output->("  $_") for @missed;
-	}
+    # did we miss some modules?
+    if (my @missed
+        = sort grep { !exists $reported{$_} && $_ ne 'Devel/TraceUse.pm' }
+        keys %INC
+        )
+    {
+        $output->("Modules used, but not reported:") if @missed;
+        $output->("  $_") for @missed;
+    }
 
-	dump_proxies($output);
+    dump_proxies($output);
 
-	close $output_fh if defined $output_fh;
+    close $output_fh if defined $output_fh;
 }
 
 # Install the final hook
