@@ -361,7 +361,7 @@ and C<5.5.30>, C<5.005_03> will all represent Perl version 5.005_03.
 
 =item C<output>
 
-  $ perl -d:TraceUse=output=out.txt your_program.pl
+  $ perl -d:TraceUse=output:out.txt your_program.pl
 
 This will output the TraceUse result to the given file instead of warn.
 
