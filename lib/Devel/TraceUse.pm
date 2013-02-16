@@ -110,7 +110,7 @@ sub trace_use
     # record potential proxies
     if ( $caller->{filename} ) {
         my($subroutine, $level);
-        while ( $subroutine = ( caller ++$level )[3] ) {
+        while ( $subroutine = ( caller ++$level )[3] || '' ) {
             last if $subroutine =~ /::/;
         }
         $loader{ join "\0", @{$caller}{qw( filename line )}, $subroutine }++;
