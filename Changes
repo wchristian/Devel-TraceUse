@@ -1,5 +1,10 @@
 Revision history for Devel-TraceUse
 
+2.09 Sat Feb 16 2013
+    - added a proxy-reporting feature, that lists modules/subroutines
+      found to load other modules --but no change to the tree output yet--
+      (thanks to Olivier Mengué (DOLMEN))
+
 2.08 Thu Sep 13 2012
     - fixed the module's encoding to match the =encoding POD directive
 
