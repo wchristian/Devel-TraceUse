@@ -72,6 +72,8 @@ Modules used from -e:
    4.  M1, -e line 0 [main]
    5.    M2, M1.pm line 3
    6.      M3, M2.pm line 3
+Possible proxies:
+   2 -e line 0, sub main::BEGIN
 OUT
     [ << 'OUT', qw(-d:TraceUse -e), 'eval { use M1 }' ],
 Modules used from -e:
@@ -92,12 +94,16 @@ Modules used from -e:
    0.    M2, M1.pm line 3
    0.      M3, M2.pm line 3
    0.  M8, -e line 0 [main]
+Possible proxies:
+   3 -e line 0, sub main::BEGIN
 OUT
     [ << "OUT", '-d:TraceUse', "-Mlib=$tlib2", '-MM7', '-MM8', '-e1' ],
 Modules used from -e:
    0.  lib$vlib, -e line 0 [main]
    0.  M7 0, -e line 0 [main]
    0.  M8, -e line 0 [main]
+Possible proxies:
+   3 -e line 0, sub main::BEGIN
 OUT
     [ << 'OUT', qw(-d:TraceUse -e), 'eval { require M10 }' ],
 Modules used from -e:
@@ -116,6 +122,8 @@ Modules used from -e:
    0.    M2, M1.pm line 3
    0.      M3, M2.pm line 3
    0.  M8, -e line 0 [main]
+Possible proxies:
+   4 -e line 0, sub main::BEGIN
 OUT
     [   << 'OUT', '-d:TraceUse', "-I$tlib2", qw( -MM4 -MM1 -MM8 -MM10 -e M5->load) ],
 Modules used from -e:
@@ -130,6 +138,8 @@ Modules used from -e:
    8.  M10, -e line 0 [main]
    9.    M11 1.01, M10.pm line 3 [M8]
   10.    M12 1.12, M10.pm line 4 [M8]
+Possible proxies:
+   4 -e line 0, sub main::BEGIN
 OUT
     [ << 'OUT', qw(-d:TraceUse -c -MM1 -e), 'require M4' ],
 Modules used from -e:
