@@ -96,7 +96,7 @@ sub trace_use
 
     # clean up path
     $caller->{filename}
-        =~ s{^(?:@{[ join '|', map quotemeta, reverse sort @INC]})/?}{};
+        =~ s!^(?:@{[ join '|', map quotemeta, reverse sort @INC ]})/?!!;
 
     # try to compute the package associated with the file
     $caller->{filepackage} = $caller->{filename};
