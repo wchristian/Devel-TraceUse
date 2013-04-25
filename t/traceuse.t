@@ -181,7 +181,7 @@ Modules used from -e:
 OUT
 
     # convert Module::CoreList devel version numbers to a number
-    my $corelist_version = '2.49_01';#$Module::CoreList::VERSION;
+    my $corelist_version = $Module::CoreList::VERSION;
     $corelist_version =~ tr/_//d;
 
     # Module::CoreList didn't know about 5.001 until its version 2.00
