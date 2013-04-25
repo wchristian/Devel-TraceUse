@@ -169,16 +169,21 @@ OUT
 Modules used from -e:
 OUT
 
-    # does Module::CoreList know about this Perl?
+    # test hiding a well-known core module
     my $this_perl = Devel::TraceUse::numify($]);
-    my @warns
-        = exists $Module::CoreList::version{$this_perl}
-        ? ()
-        : ([ "Module::CoreList $Module::CoreList::VERSION doesn't know about Perl $this_perl" ]);
-    push @tests, [ @warns,
-       << "OUT", '-d:TraceUse=hidecore', '-Mstrict', '-e1' ];
+    push @tests, [ << "OUT", '-d:TraceUse=hidecore', '-Mstrict', '-e1' ];
 Modules used from -e:
 OUT
+
+    # does Module::CoreList know about this Perl?
+    if ( !exists $Module::CoreList::version{$this_perl} ) {
+        $tests[-1][0] .= << 'OUT';    # update the output
+   1.  strict %%%, -e line 0 [main]
+OUT
+        unshift $tests[-1], [         #  add a warning
+            "Module::CoreList $Module::CoreList::VERSION doesn't know about Perl $this_perl"
+        ];
+    }
 
     # convert Module::CoreList devel version numbers to a number
     my $corelist_version = $Module::CoreList::VERSION;
