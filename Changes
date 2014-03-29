@@ -1,5 +1,9 @@
 Revision history for Devel-TraceUse
 
+2.091 Sat Mar 29 2014
+    - documentation fixes (thanks to Ioan Rogers (IOANR))
+    - test fixes (related to Module::CoreList)
+
 2.09 Sat Feb 16 2013
     - added a proxy-reporting feature, that lists modules/subroutines
       found to load other modules --but no change to the tree output yet--
