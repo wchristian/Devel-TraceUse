@@ -180,7 +180,7 @@ OUT
         $tests[-1][0] .= << 'OUT';    # update the output
    1.  strict %%%, -e line 0 [main]
 OUT
-        unshift $tests[-1], [         #  add a warning
+        unshift @{ $tests[-1] }, [         #  add a warning
             "Module::CoreList $Module::CoreList::VERSION doesn't know about Perl $this_perl"
         ];
     }
