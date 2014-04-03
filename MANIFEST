@@ -23,6 +23,6 @@ t/lib2/M12.pm
 t/lib2/M8.pm
 t/numify.t
 t/traceuse.t
-xt/pod-coverage.t
-xt/pod.t
+t/pod-coverage.t
+t/pod.t
 META.json
