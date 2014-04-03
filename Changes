@@ -1,5 +1,9 @@
 Revision history for Devel-TraceUse
 
+2.092 Thu Apr  3 2014
+    - auto-dereferencing only works since 5.14
+    - move the xt/ tests back in t/, guarded by RELEASE_TESTING
+
 2.091 Sat Mar 29 2014
     - documentation fixes (thanks to Ioan Rogers (IOANR))
     - test fixes (related to Module::CoreList)
