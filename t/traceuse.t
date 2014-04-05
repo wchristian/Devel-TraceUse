@@ -381,10 +381,21 @@ sub add_sitecustomize {
         # Loaded so first it's not caught by our @INC hook:
         #  Modules used, but not reported:
         #    /home/book/local/5.8.9/site/lib/sitecustomize.pl
-        $errput =~ s/Modules used, but not reported:.*?^(.*)//gsm;
-        my @not_reported = ( "  $sitecustomize\n", $1 ? split /^/, $1 : () );
-        $errput .= "Modules used, but not reported:\n" . join '',
-            sort @not_reported;
+
+        # grab the various postambles, starting from the end
+        my ( @postambles, @unreported );
+        $errput =~ s/(-e syntax OK.*)//s
+            and unshift @postambles, $1;
+        $errput =~ s/(Possible proxies:.*)//s
+            and unshift @postambles, $1;
+        $errput =~ s/(Modules used, but not reported:.*)//s
+            and ( undef, @unreported ) = split( /^/, $1 );
+        push @unreported, "  $sitecustomize\n";
+
+        # put the postambles back
+        $errput .= join '',
+            "Modules used, but not reported:\n", ( sort @unreported ),
+            @postambles;
     }
     elsif ( grep { $_ eq '-d:TraceUse' } @cmd ) {
 
