@@ -122,7 +122,7 @@ sub trace_use
 
 sub show_trace_visitor
 {
-    my ( $mod, $pos, $output_cb, @args ) = @_;
+    my ( $mod, $pos ) = @_;
 
     my $caller = $mod->{caller};
     my $message = sprintf( '%4s.', $mod->{rank} ) . '  ' x $pos;
@@ -140,12 +140,14 @@ sub show_trace_visitor
     $message .= " (FAILED)"
         if !exists $INC{$mod->{filename}};
 
-    $output_cb->($message, @args);
+    return $message;
 }
 
 sub visit_trace
 {
-    my ( $visitor, $mod, $pos, @args ) = @_;
+    my ( $visitor, $mod, $pos ) = @_;
+
+    my @to_print;
 
     my $hide = 0;
 
@@ -156,7 +158,7 @@ sub visit_trace
             $hide = exists $Module::CoreList::version{$hide_core}{$mod->{module}};
         }
 
-        $visitor->( $mod, $pos, @args ) unless $hide;
+        push @to_print, $visitor->( $mod, $pos ) unless $hide;
 
         $reported{$mod->{filename}}++;
     }
@@ -164,8 +166,10 @@ sub visit_trace
         $mod = { loaded => delete $loaded{$mod} };
     }
 
-    visit_trace( $visitor, $used{$_}, $hide ? $pos : $pos + 1, @args )
-        for map { $INC{$_} || $_ } @{ $mod->{loaded} };
+    push @to_print, map { visit_trace( $visitor, $used{$_}, $hide ? $pos : $pos + 1 ) }
+      map { $INC{$_} || $_ } @{ $mod->{loaded} };
+
+    return @to_print;
 }
 
 # we don't want to use version.pm on old Perls
@@ -180,8 +184,6 @@ sub numify {
 
 sub dump_proxies
 {
-    my $output = shift;
-
     my @hot_loaders =
         sort { $loader{$b} <=> $loader{$a} }
         grep { $loader{$_} > 1 }
@@ -189,15 +191,17 @@ sub dump_proxies
 
     return unless @hot_loaders;
 
-    $output->("Possible proxies:");
+    my @to_print = ("Possible proxies:");
 
     for my $loader (@hot_loaders) {
         my ( $filename, $line, $subroutine ) = split /\0/, $loader;
-        $output->(sprintf("%4d %s line %d%s",
+        push @to_print, sprintf "%4d %s line %d%s",
                 $loader{$loader},
                 $filename, $line,
-                    (defined($subroutine) ? ", sub $subroutine" : '')));
+                    (defined($subroutine) ? ", sub $subroutine" : '');
     }
+
+    return @to_print;
 }
 
 sub dump_result
@@ -225,17 +229,13 @@ sub dump_result
             if !exists $Module::CoreList::version{$hide_core};
     }
 
-    my $output = defined $output_fh
-           ? sub { print $output_fh "$_[0]\n" }
-           : sub { warn "$_[0]\n" };
-
     # output the diagnostic
-    $output->("Modules used from $root:");
-    visit_trace( \&show_trace_visitor, $root, 0, $output );
+    my @to_print = ("Modules used from $root:");
+    push @to_print, visit_trace( \&show_trace_visitor, $root, 0 );
 
     # anything left?
     if (%loaded) {
-        visit_trace( \&show_trace_visitor, $_, 0, $output ) for sort keys %loaded;
+        push @to_print, visit_trace( \&show_trace_visitor, $_, 0 ) for sort keys %loaded;
     }
 
     # did we miss some modules?
@@ -244,13 +244,20 @@ sub dump_result
         keys %INC
         )
     {
-        $output->("Modules used, but not reported:") if @missed;
-        $output->("  $_") for @missed;
+        push @to_print, "Modules used, but not reported:";
+        push @to_print, "  $_" for @missed;
     }
 
-    dump_proxies($output);
+    push @to_print, dump_proxies();
 
-    close $output_fh if defined $output_fh;
+    my $to_print = join "\n", @to_print;
+    if ( defined $output_fh ) {
+        print $output_fh "$to_print\n";
+        close $output_fh;
+        return;
+    }
+    warn "$to_print\n";
+    return;
 }
 
 # Install the final hook
