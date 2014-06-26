@@ -22,6 +22,7 @@ my %loader;      # track potential proxy modules
 my $rank  = 0;   # record the loading order of modules
 my $quiet = 1;   # no output until decided otherwise
 my $output_fh;   # optional write filehandle where results will be output
+my $format;      # optional format for the report output
 
 # Hide core modules (for the specified version)?
 my $hide_core = 0;
@@ -38,6 +39,8 @@ sub import {
             $hide_core = numify( $1 ? $1 : $] );
         } elsif (/^output:(.*)$/) {
             open $output_fh, '>', $1 or die "can't open $1: $!";
+        } elsif (/^format:(.*)$/) {
+            $format = $1;
         } else {
             die "Unknown argument to $class: $_\n";
         }
@@ -204,6 +207,31 @@ sub dump_proxies
     return @to_print;
 }
 
+sub tree_report {
+    # output the diagnostic
+    my @to_print = ("Modules used from $root:");
+    push @to_print, visit_trace( \&show_trace_visitor, $root, 0 );
+
+    # anything left?
+    if (%loaded) {
+        push @to_print, visit_trace( \&show_trace_visitor, $_, 0 ) for sort keys %loaded;
+    }
+
+    # did we miss some modules?
+    if (my @missed
+        = sort grep { !exists $reported{$_} && $_ ne 'Devel/TraceUse.pm' }
+        keys %INC
+        )
+    {
+        push @to_print, "Modules used, but not reported:";
+        push @to_print, "  $_" for @missed;
+    }
+
+    push @to_print, dump_proxies();
+
+    return @to_print;
+}
+
 sub dump_result
 {
     return if $quiet;
@@ -229,26 +257,8 @@ sub dump_result
             if !exists $Module::CoreList::version{$hide_core};
     }
 
-    # output the diagnostic
-    my @to_print = ("Modules used from $root:");
-    push @to_print, visit_trace( \&show_trace_visitor, $root, 0 );
-
-    # anything left?
-    if (%loaded) {
-        push @to_print, visit_trace( \&show_trace_visitor, $_, 0 ) for sort keys %loaded;
-    }
-
-    # did we miss some modules?
-    if (my @missed
-        = sort grep { !exists $reported{$_} && $_ ne 'Devel/TraceUse.pm' }
-        keys %INC
-        )
-    {
-        push @to_print, "Modules used, but not reported:";
-        push @to_print, "  $_" for @missed;
-    }
-
-    push @to_print, dump_proxies();
+    my $meth = ($format || "tree") . "_report";
+    my @to_print = __PACKAGE__->$meth;
 
     my $to_print = join "\n", @to_print;
     if ( defined $output_fh ) {
