@@ -148,7 +148,7 @@ sub show_trace_visitor
 
 sub visit_trace
 {
-    my ( $visitor, $mod, $pos ) = @_;
+    my ( $visitor, $mod, $pos, $indent ) = @_;
 
     my @to_print;
 
@@ -169,7 +169,7 @@ sub visit_trace
         $mod = { loaded => delete $loaded{$mod} };
     }
 
-    push @to_print, map { visit_trace( $visitor, $used{$_}, $hide ? $pos : $pos + 1 ) }
+    push @to_print, map { visit_trace( $visitor, $used{$_}, $hide ? $pos : $pos + $indent, $indent ) }
       map { $INC{$_} || $_ } @{ $mod->{loaded} };
 
     return @to_print;
@@ -208,14 +208,25 @@ sub dump_proxies
 }
 
 sub tree_report {
-    # output the diagnostic
-    my @to_print = ("Modules used from $root:");
-    push @to_print, visit_trace( \&show_trace_visitor, $root, 0 );
+    my @modules = visit_trace( \&show_trace_visitor, $root, 0, 1 );
+    push @modules, visit_trace( \&show_trace_visitor, $_, 0, 1 ) for sort keys %loaded;
+    my @to_print = report_wrapper(@modules);
+    return @to_print;
+}
 
-    # anything left?
-    if (%loaded) {
-        push @to_print, visit_trace( \&show_trace_visitor, $_, 0 ) for sort keys %loaded;
-    }
+sub chron_report {
+    my @modules = visit_trace( \&show_trace_visitor, $root, 1, 0 );
+    push @modules, visit_trace( \&show_trace_visitor, $_, 1, 0 ) for sort keys %loaded;
+    @modules = sort @modules;
+    my @to_print = report_wrapper(@modules);
+    return @to_print;
+}
+
+sub report_wrapper {
+    my (@modules) = @_;
+
+    # output the diagnostic
+    my @to_print = ("Modules used from $root:", @modules);
 
     # did we miss some modules?
     if (my @missed
