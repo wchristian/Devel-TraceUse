@@ -125,10 +125,10 @@ sub trace_use
 
 sub show_trace_visitor
 {
-    my ( $mod, $pos ) = @_;
+    my ( $mod ) = @_;
 
     my $caller = $mod->{caller};
-    my $message = sprintf( '%4s.', $mod->{rank} ) . '  ' x $pos;
+    my $message = sprintf( '%4s.', $mod->{rank} ) . '  ' x $mod->{pos};
     $message .= "$mod->{module}";
     my $version = ${"$mod->{module}\::VERSION"};
     $message .= defined $version ? " $version," : ',';
@@ -148,9 +148,9 @@ sub show_trace_visitor
 
 sub visit_trace
 {
-    my ( $visitor, $mod, $pos, $indent ) = @_;
+    my ( $mod, $pos, $indent ) = @_;
 
-    my @to_print;
+    my @modules;
 
     my $hide = 0;
 
@@ -161,7 +161,8 @@ sub visit_trace
             $hide = exists $Module::CoreList::version{$hide_core}{$mod->{module}};
         }
 
-        push @to_print, $visitor->( $mod, $pos ) unless $hide;
+        $mod->{pos} = $pos;
+        push @modules, $mod unless $hide;
 
         $reported{$mod->{filename}}++;
     }
@@ -169,10 +170,10 @@ sub visit_trace
         $mod = { loaded => delete $loaded{$mod} };
     }
 
-    push @to_print, map { visit_trace( $visitor, $used{$_}, $hide ? $pos : $pos + $indent, $indent ) }
+    push @modules, map { visit_trace( $used{$_}, $hide ? $pos : $pos + $indent, $indent ) }
       map { $INC{$_} || $_ } @{ $mod->{loaded} };
 
-    return @to_print;
+    return @modules;
 }
 
 # we don't want to use version.pm on old Perls
@@ -208,16 +209,16 @@ sub dump_proxies
 }
 
 sub tree_report {
-    my @modules = visit_trace( \&show_trace_visitor, $root, 0, 1 );
-    push @modules, visit_trace( \&show_trace_visitor, $_, 0, 1 ) for sort keys %loaded;
+    my @modules = visit_trace( $root, 0, 1 );
+    push @modules, visit_trace( $_, 0, 1 ) for sort keys %loaded;
     my @to_print = report_wrapper(@modules);
     return @to_print;
 }
 
 sub chron_report {
-    my @modules = visit_trace( \&show_trace_visitor, $root, 1, 0 );
-    push @modules, visit_trace( \&show_trace_visitor, $_, 1, 0 ) for sort keys %loaded;
-    @modules = sort @modules;
+    my @modules = visit_trace( $root, 1, 0 );
+    push @modules, visit_trace( $_, 1, 0 ) for sort keys %loaded;
+    @modules = sort { $a->{rank} <=> $b->{rank} } @modules;
     my @to_print = report_wrapper(@modules);
     return @to_print;
 }
@@ -226,7 +227,8 @@ sub report_wrapper {
     my (@modules) = @_;
 
     # output the diagnostic
-    my @to_print = ("Modules used from $root:", @modules);
+    my @to_print = ("Modules used from $root:");
+    push @to_print, map { show_trace_visitor($_) } @modules;
 
     # did we miss some modules?
     if (my @missed
